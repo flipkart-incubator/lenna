@@ -33,6 +33,7 @@ if [ "$1" == "configure" ] ; then
     chmod -R a+rwx /etc/${PACKAGE}
     chown -R ${PF_UID}:${PF_GID} /var/log/${PACKAGE}
     chmod a+x /etc/init.d/${PACKAGE}
+    chmod -R a+rwx /etc/${PACKAGE}/${PACKAGE}.yml
     sudo chkconfig --level 2345  ${PACKAGE} on
     sudo /etc/init.d/${PACKAGE} stop || true
     sleep 5
