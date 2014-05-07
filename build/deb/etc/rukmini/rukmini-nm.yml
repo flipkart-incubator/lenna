@@ -44,3 +44,5 @@ logging:
       archive: true
       archivedLogFilenamePattern: /var/log/rukmini/rukmini-%d.log
       archivedFileCount: 5
+
+cdn: "http://cdn-storage.nm.flipkart.com/image/%s"

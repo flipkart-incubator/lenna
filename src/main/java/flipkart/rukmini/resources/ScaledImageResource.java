@@ -2,6 +2,7 @@ package flipkart.rukmini.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.base.Optional;
+import flipkart.rukmini.RukminiConfiguration;
 import flipkart.rukmini.helpers.ImageResizeHelper;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -22,7 +23,11 @@ public class ScaledImageResource {
 
     private final Logger log = LoggerFactory.getLogger("ScaledImageResource");
 
-    private static final String CDN_HOST = "http://cdn-storage.nm.flipkart.com/image/%s";
+    private RukminiConfiguration configuration;
+
+    public ScaledImageResource(RukminiConfiguration configuration) {
+        this.configuration = configuration;
+    }
 
     @GET
     @Path("{resolution}/{imageUri:.*}")
@@ -52,7 +57,7 @@ public class ScaledImageResource {
     @Timed(name = "image-downloads")
     private File download(final String imageUri) throws IOException {
         File fTemp = File.createTempFile("download", "img");
-        FileUtils.copyURLToFile(new URL(String.format(CDN_HOST,imageUri)), fTemp);
+        FileUtils.copyURLToFile(new URL(String.format(configuration.getCdn(),imageUri)), fTemp);
         log.debug("Downloaded file size: " + FileUtils.sizeOf(fTemp));
         return fTemp;
     }

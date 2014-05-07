@@ -28,6 +28,6 @@ public class Rukmini extends Application<RukminiConfiguration> {
         environment.healthChecks().register("dummy", new DummyHealthCheck());
         environment.jersey().register(new PingResource());
         environment.jersey().register(new StatusResource());
-        environment.jersey().register(new ScaledImageResource());
+        environment.jersey().register(new ScaledImageResource(configuration));
     }
 }
