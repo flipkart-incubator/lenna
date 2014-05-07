@@ -1,0 +1,78 @@
+#!/bin/bash -e
+
+function die()
+{
+        echo "Error: $1" >&2
+        exit 1
+}
+
+[ -z "${LOCAL_DIR}" ] && die "No LOCAL_DIR dir specified"
+[ -z "${TARGET}" ] && die "No package target specified"
+[ -z "${INSTALL_BASE}" ] && die "No install base specified"
+[ -z "${PACKAGE}" ] && die "No package name specified"
+[ ! -d "${LOCAL_DIR}" ] && die "${LOCAL_DIR} does not exist"
+
+case "${TARGET}" in
+        local) ENV=local;;
+        nm) ENV=nm;;
+        qa) ENV=eng;;
+        sb) ENV=sb;;
+        stage) ENV=stage;;
+        stagech) ENV=stagech;;
+        release) ENV=prod;;
+esac
+[ -z "$ENV" ] && die "Invalid target: ${TARGET}"
+
+BUILD_DIR="${LOCAL_DIR}/build"
+DEB_DIR="${LOCAL_DIR}/deb"
+TARGET_DIR="${LOCAL_DIR}/target"
+
+CUR_SAVE_PWD=$(pwd)
+
+cd "${LOCAL_DIR}"
+
+DEB_DIR=deb
+if [ -e ${DEB_DIR} ]; then
+    rm -rf ${DEB_DIR}
+fi
+
+#Create target folders
+[ ! -d "${DEB_DIR}" ] && mkdir "${DEB_DIR}"
+[ ! -d "${DEB_DIR}/DEBIAN" ] && mkdir -p "${DEB_DIR}/DEBIAN"
+[ ! -d "${DEB_DIR}/var/lib/${PACKAGE}" ] && mkdir -p "${DEB_DIR}/var/lib/${PACKAGE}"
+[ ! -d "${DEB_DIR}/var/log/${PACKAGE}" ] && mkdir -p "${DEB_DIR}/var/log/${PACKAGE}"
+[ ! -d "${DEB_DIR}/etc/init.d" ] && mkdir -p "${DEB_DIR}/etc/init.d"
+[ ! -d "${DEB_DIR}/etc/${PACKAGE}" ] && mkdir -p "${DEB_DIR}/etc/${PACKAGE}"
+
+
+#Copy Debian packaging configuration & scripts
+cp -r "${BUILD_DIR}/deb/DEBIAN" "${DEB_DIR}/"
+
+#Copy application service script
+cp -r "${BUILD_DIR}/deb/etc/init.d" "${DEB_DIR}/etc/"
+
+#Copy image resizer binary
+cp -r "${BUILD_DIR}/deb/usr" "${DEB_DIR}/"
+
+if [ "${ENV}" == "nm" ]; then
+cp -rf "${BUILD_DIR}/deb/etc/${PACKAGE}/${PACKAGE}-nm.yml" "${DEB_DIR}/etc/${PACKAGE}/${PACKAGE}.yml"
+fi
+if [ "${ENV}" == "stagech" ]; then
+cp -rf "${BUILD_DIR}/deb/etc/${PACKAGE}/${PACKAGE}-stagech.yml" "${DEB_DIR}/etc/${PACKAGE}/${PACKAGE}.yml"
+fi
+
+echo "Building ${PACKAGE}"
+mvn package
+echo "Building ${PACKAGE} successful"
+
+#Copy the service binary (fat jar)
+cp -r "${TARGET_DIR}/rukmini-1.0.jar" "${DEB_DIR}/var/lib/${PACKAGE}/"
+
+#Set executable permission for DEBIAN directory
+chmod -R 755 "${DEB_DIR}/DEBIAN"
+
+
+
+
+
+

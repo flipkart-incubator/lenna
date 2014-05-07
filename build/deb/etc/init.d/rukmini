@@ -1,0 +1,229 @@
+#! /bin/sh
+# /etc/init.d/rukmini
+
+### BEGIN INIT INFO
+# Provides:          rukmini
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts the rukmini service
+# Description:       This file is used to start rukmini image delivery service
+#                    and should be placed in /etc/init.d
+### END INIT INFO
+
+# Author:  Phaneesh Nagaraja <phaneesh.nagaraja[AT]flipkart.com>
+
+#Java Executable
+JAVA=`which java`
+
+PACKAGE=rukmini
+PACKAGE_USER=rukmini
+PACKAGE_GROUP=rukmini
+PF_UID=9075
+PF_GID=9001
+
+RUKMINI_BASE_DIR=/var/lib/${PACKAGE}
+RUKMINI_JAR=/var/lib/${PACKAGE}/rukmini-1.0.jar
+RUKMINI_CONFIG=/etc/${PACKAGE}/rukmini.yml
+RUKMINI_PID_PATH=/var/run/${PACKAGE}
+RUKMINI_PID_FILE=${RUKMINI_PID_PATH}/${PACKAGE}.pid
+
+#Memory settings
+JAVA_OPTS="${JAVA_OPTS} -Xms1024m"
+JAVA_OPTS="${JAVA_OPTS} -Xmx1024m"
+JAVA_OPTS="${JAVA_OPTS} -Xmn512m"
+JAVA_OPTS="${JAVA_OPTS} -XX:NewSize=512m"
+JAVA_OPTS="${JAVA_OPTS} -XX:MaxNewSize=512m"
+
+# Set Server JVM
+JAVA_OPTS="${JAVA_OPTS} -server"
+
+# Set timezone
+JAVA_OPTS="${JAVA_OPTS} -Duser.timezone=\"Asia/Kolkata\""
+
+# Set to headless, just in case
+JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true"
+
+#Set encoding to UTF-8
+JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8"
+
+#Program Name
+JAVA_OPTS="${JAVA_OPTS} -D${PACKAGE}"
+
+# Reduce the per-thread stack size
+JAVA_OPTS="${JAVA_OPTS} -Xss1M"
+
+# Force the JVM to use IPv4 stack
+JAVA_OPTS="${JAVA_OPTS} -Djava.net.preferIPv4Stack=true"
+
+# GC Options
+JAVA_OPTS="${JAVA_OPTS} -XX:+UseParNewGC"
+JAVA_OPTS="${JAVA_OPTS} -XX:-UseParallelGC"
+JAVA_OPTS="${JAVA_OPTS} -XX:+UseConcMarkSweepGC"
+JAVA_OPTS="${JAVA_OPTS} -XX:+CMSParallelRemarkEnabled"
+
+#Memory Setting
+JAVA_OPTS="${JAVA_OPTS} -XX:PermSize=256m"
+JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=256m"
+
+#Enable super options (For HotSpot optimizations)
+JAVA_OPTS="${JAVA_OPTS} -XX:+AggressiveOpts"
+
+#Disable Biased locking
+JAVA_OPTS="${JAVA_OPTS} -XX:-UseBiasedLocking"
+
+# Causes the JVM to dump its heap on OutOfMemory.
+JAVA_OPTS="${JAVA_OPTS} -XX:+HeapDumpOnOutOfMemoryError"
+
+#Setup remote JMX monitoring
+JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote"
+JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.port=29011"
+JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.authenticate=false"
+JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.ssl=false"
+JAVA_OPTS="${JAVA_OPTS} -Dhazelcast.jmx=true"
+
+if [ ! -e ${RUKMINI_PID_PATH} ]; then
+    mkdir -m 755 -p ${RUKMINI_PID_PATH}
+fi
+
+# Determine hard and soft limits for the user
+USR_H_LIMIT=`ulimit -Hn`
+USR_S_LIMIT=`ulimit -Sn`
+
+#Free memory
+FREE_MEM=`free -g`
+
+#Uptime
+M_UPTIME=`uptime`
+echo "************************************************************************"
+echo "Hard Limit: ${USR_H_LIMIT}"
+echo "Soft Limit: ${USR_S_LIMIT}"
+echo "Free Memory: ${FREE_MEM}"
+echo "Uptime: ${M_UPTIME}"
+echo "************************************************************************"
+
+
+ACTION="$1"
+
+start()
+{
+    start-stop-daemon --start --background --oknodo \
+                --umask 000 --user ${PACKAGE_USER} --chuid ${PACKAGE_USER} \
+                --make-pidfile --pidfile ${RUKMINI_PID_FILE} \
+                --exec ${JAVA} -- ${JAVA_OPTS} -jar ${RUKMINI_JAR} server ${RUKMINI_CONFIG} 2>&1 > /dev/null
+    return $?
+}
+
+stop()
+{
+    start-stop-daemon --stop --signal 9 \
+                        --quiet --pidfile ${RUKMINI_PID_FILE} \
+                        --retry 300 \
+                        --user ${PACKAGE_USER} \
+                        --exec ${JAVA} -- ${JAVA_OPTS} -jar ${RUKMINI_JAR} server ${RUKMINI_CONFIG} 2>&1 > /dev/null
+    return $?
+}
+
+terminate()
+{
+    if [ -f "${RUKMINI_PID_FILE}" ] ; then
+        sudo -u ${PACKAGE_USER} kill -9 $(cat ${RUKMINI_PID_FILE}) || true
+        sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
+    else
+        CURRENT_RUNNING_PID=`ps -ef | grep rukmini | tail -n 1 | cut -d' ' -f 6`
+        if [ -z "${CURRENT_RUNNING_PID}" ] ; then
+            sudo -u ${PACKAGE_USER} kill -9 ${CURRENT_RUNNING_PID}
+            sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
+        fi
+    fi
+    echo
+    echo "Service has been stopped using black magic and voodoo!"
+    echo
+}
+
+
+usage()
+{
+    echo "Usage: ${0} {start|stop|restart|status|force-restart|terminate} "
+    exit 0
+}
+
+fix()
+{
+    IS_PROCESS_RUNNING=`ps -ef | grep rukmini | wc -l`
+    if [ "${IS_PROCESS_RUNNING}" = 2 ]
+    then
+        NEW_PID_PROCESS=`ps -ef | grep rukmini | awk -F' ' '{print $2}' | tail -n 1`
+        sudo -u ${PACKAGE_USER} echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
+        sudo -u ${PACKAGE_USER} chmod a+rwx ${RUKMINI_PID_FILE}
+        echo "PID file has been updated!"
+    else
+      sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
+    fi
+}
+
+status()
+{
+    cd "${RUKMINI_BASE_DIR}"
+    if [ -f "${RUKMINI_PID_FILE}" ] ; then
+        echo "${PACKAGE} is running with pid : " $(cat ${RUKMINI_PID_FILE})
+    else
+        echo "Service is not running according to pid file! End is near.. repent now!"
+        fix
+    fi
+}
+
+oor() {
+    echo "Bringing API out of rotation..."
+    API_HOST=`hostname`
+    ENDPOINT="http://"${API_HOST}":9100/oor"
+    curl -XPOST ${ENDPOINT} || true
+    sleep 10
+    echo "Done"
+}
+
+inr() {
+    echo "Bringing API into rotation..."
+    API_HOST=`hostname`
+    ENDPOINT="http://"${API_HOST}":9100/inr"
+    curl -XPOST ${ENDPOINT} || true
+    echo "Done"
+}
+
+case "${ACTION}" in
+    start)
+        echo "Starting image delivery service...."
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        start
+        ;;
+    force-restart)
+        terminate
+        sleep 5
+        start
+        ;;
+    terminate)
+        terminate
+        ;;
+    status)
+       status
+       ;;
+    fix)
+       fix
+       ;;
+    oor)
+        oor
+        ;;
+    inr)
+        inr
+        ;;
+    *)
+       usage
+       ;;
+esac

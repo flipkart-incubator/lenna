@@ -1,0 +1,44 @@
+#! /bin/bash -e
+#Package Configuration
+PACKAGE=rukmini
+PACKAGE_USER=rukmini
+PACKAGE_GROUP=rukmini
+PF_UID=9075
+PF_GID=9001
+
+if [ "$1" == "configure" ] ; then
+    #Creating group if it doesnt exist
+    if ! getent group ${PACKAGE_GROUP} > /dev/null; then
+        groupadd -g "${PF_GID}" ${PACKAGE_GROUP}
+    fi
+    #Creating user if it doesnt exist
+    if ! getent passwd ${PF_UID} > /dev/null; then
+        adduser --system --uid ${PF_UID} --home /var/lib/${PACKAGE} --no-create-home \
+            --ingroup ${PACKAGE_GROUP} --disabled-password --shell /bin/false \
+            ${PACKAGE_USER}
+    fi
+    if ! getent passwd ${PF_UID} > /dev/null; then
+        adduser --system --uid ${PF_UID} --home /var/lib/${PACKAGE} --no-create-home \
+            --ingroup ${PACKAGE_GROUP} --disabled-password --shell /bin/false \
+            ${PACKAGE_USER}
+    fi
+    chown -R ${PF_UID}:${PF_GID} /var/lib/${PACKAGE}
+    if [ -d "/var/log/${PACKAGE}" ]; then
+ 	    touch /var/log/${PACKAGE}/${PACKAGE}.log
+ 	else
+ 	    mkdir -p /var/log/${PACKAGE}
+ 	    touch /var/log/${PACKAGE}/${PACKAGE}.log
+    fi
+    chmod -R a+rwx /var/log/${PACKAGE}
+    chmod -R a+rwx /etc/${PACKAGE}
+    chown -R ${PF_UID}:${PF_GID} /var/log/${PACKAGE}
+    chmod a+x /etc/init.d/${PACKAGE}
+    sudo chkconfig --level 2345  ${PACKAGE} on
+    sudo /etc/init.d/${PACKAGE} stop || true
+    sleep 5
+    if [ -x "/etc/init.d/${PACKAGE}" ]; then
+	    sudo /etc/init.d/${PACKAGE} start || true
+	    sleep 5
+    fi
+fi
+exit 0

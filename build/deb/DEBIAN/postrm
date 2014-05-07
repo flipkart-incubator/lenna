@@ -1,0 +1,23 @@
+#! /bin/bash -e
+#Package Configuration
+PACKAGE=rukmini
+PACKAGE_USER=rukmini
+PACKAGE_GROUP=rukmini
+PF_UID=9075
+PF_GID=9001
+
+if [ "$1" == "upgrade" ]; then
+	exit 0;
+fi
+
+if [ "$1" == "purge" ] ; then
+    if [ -d "/var/log/${PACKAGE}" ]; then
+ 	    rm -rf "/var/log/${PACKAGE}"
+    fi
+    if [ -d "/var/lib/${PACKAGE}" ]; then
+        rm -rf "/var/lib/${PACKAGE}"
+    fi
+    (id ${PACKAGE_USER}  >/dev/null 2>&1 && deluser ${PACKAGE_USER}) || true
+    (egrep "^${PACKAGE_GROUP}:" /etc/group >/dev/null 2>&1 && delgroup --only-if-empty ${PACKAGE_GROUP}) || true
+fi
+exit 0

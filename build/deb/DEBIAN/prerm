@@ -1,0 +1,22 @@
+#! /bin/bash -e
+#Package Configuration
+PACKAGE=rukmini
+PACKAGE_USER=rukmini
+PACKAGE_GROUP=rukmini
+PF_UID=9075
+PF_GID=9001
+
+CMD="$1"
+if [ "${CMD}" == "remove" -o ]; then
+    sudo /etc/init.d/${PACKAGE} stop || true
+    #Remove Service Script
+    if [ -f "/etc/init.d/${PACKAGE}" ] ; then
+        rm -f "/etc/init.d/${PACKAGE}"
+    fi
+    #Remove Application folder
+    if [ -d "/var/lib/${PACKAGE}" ] ; then
+        rm -rf "/var/lib/${PACKAGE}"
+    fi
+fi
+
+

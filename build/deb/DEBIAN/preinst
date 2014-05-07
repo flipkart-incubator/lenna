@@ -1,0 +1,7 @@
+#! /bin/bash -e
+#Package Configuration
+PACKAGE=rukmini
+PACKAGE_USER=rukmini
+PACKAGE_GROUP=rukmini
+PF_UID=9075
+PF_GID=9001
