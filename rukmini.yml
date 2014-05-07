@@ -37,3 +37,5 @@ logging:
     flipkart.rukmini: DEBUG
 
 cdn: "http://cdn-storage.nm.flipkart.com/image/%s"
+
+mode: "native"

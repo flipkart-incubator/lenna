@@ -44,3 +44,5 @@ logging:
       archivedFileCount: 5
 
 cdn: "http://img6a.flixcart.com/image/%s"
+
+mode: "magick"

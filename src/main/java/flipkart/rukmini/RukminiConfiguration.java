@@ -12,6 +12,9 @@ public class RukminiConfiguration extends Configuration {
     @NotEmpty
     private String cdn;
 
+    @NotEmpty
+    private String mode;
+
     @JsonProperty
     public String getCdn() {
         return cdn;
@@ -20,6 +23,16 @@ public class RukminiConfiguration extends Configuration {
     @JsonProperty
     public void setCdn(String cdn) {
         this.cdn = cdn;
+    }
+
+    @JsonProperty
+    public String getMode() {
+        return mode;
+    }
+
+    @JsonProperty
+    public void setMode(String mode) {
+        this.mode = mode;
     }
 
 }

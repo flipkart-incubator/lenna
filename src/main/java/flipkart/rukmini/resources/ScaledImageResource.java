@@ -41,7 +41,8 @@ public class ScaledImageResource {
             fInput = download(imageUri);
             if(!fInput.exists())
                 return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN).entity("Not Found").build();
-            fOutput = ImageResizeHelper.resize(fInput.getAbsolutePath(), height, width, quality.or(90));
+            fOutput = ImageResizeHelper.resize(fInput.getAbsolutePath(), height, width, quality.or(90),
+                    configuration.getMode());
             byte data[] = FileUtils.readFileToByteArray(fOutput);
             return Response.ok(data).type("image/jpeg").build();
         } catch (IOException e) {
