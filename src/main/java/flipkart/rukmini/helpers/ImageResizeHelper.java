@@ -16,14 +16,15 @@ public class ImageResizeHelper {
 
     private static final Logger log = LoggerFactory.getLogger("ImageResizeHelper");
 
-    public static File resize(final String inputImagePath, final int height, final int width) throws IOException, InterruptedException {
+    public static File resize(final String inputImagePath, final int height, final int width, final int quality) throws IOException, InterruptedException {
         File fTemp = new File(FileUtils.getTempDirectoryPath() +"/" + UUID.randomUUID().toString() +".jpeg");
         log.debug("Converting image to: " +fTemp.getAbsolutePath());
         ProcessBuilder builder = new ProcessBuilder()
                 .command("resize-image", "-source", inputImagePath, "-dest",
-                        fTemp.getAbsolutePath(), "-h",
-                        String.valueOf(height), "-w",
-                        String.valueOf(width), "-scaled")
+                        fTemp.getAbsolutePath(), "-h", String.valueOf(height),
+                        "-w", String.valueOf(width),
+                        "-q", String.valueOf(quality),
+                        "-scaled")
                 .directory(new File("/usr/bin"));
         log.debug("Convert command: " + StringUtils.join(builder.command(), ' '));
         Process process = builder.start();

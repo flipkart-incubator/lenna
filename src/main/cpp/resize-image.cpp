@@ -13,7 +13,7 @@ using namespace std;
 using namespace cv;
 
 int convertImage(const char*, const char*);
-int resizeImage(const char*, const char*, int, int, bool);
+int resizeImage(const char*, const char*, int, int, bool, int);
 
 int main(int argc, char *argv[]){
     string src;
@@ -22,38 +22,46 @@ int main(int argc, char *argv[]){
     string width;
     bool scaled = false;
     bool convert = false;
+    string quality;
 
     for(int i=1; i<argc; i++) {
         if(strcmp(argv[i], "-source") == 0) {
-                if(++i < argc){
-                        src = argv[i];
-                }
+            if(++i < argc){
+                src = argv[i];
+            }
         }
         else if(strcmp(argv[i], "-dest") == 0){
                 if(++i < argc)
-                        dest = argv[i];
+                    dest = argv[i];
         }
         else if(strcmp(argv[i], "-w") == 0){
                 if(++i < argc)
-                        width = argv[i];
+                    width = argv[i];
         }
         else if(strcmp(argv[i], "-h") == 0){
-                if(++i < argc)
-                        height = argv[i];
+            if(++i < argc)
+                height = argv[i];
         }
-        else if(strcmp(argv[i], "-scaled") == 0){
+        else if(strcmp(argv[i], "-q") == 0){
+            if(++i < argc)
+                quality = argv[i];
+        }
+
+        else if(strcmp(argv[i], "-scaled") == 0) {
             scaled = true;
         }
-        else if(strcmp(argv[i], "-convert") == 0){
+        else if(strcmp(argv[i], "-convert") == 0) {
             convert = true;
         }
     }
     
-    if(strcmp(src.c_str(), "") == 0 || strcmp(dest.c_str(), "") == 0 || strcmp(width.c_str(), "") == 0 || strcmp(height.c_str(), "") == 0){
+    if(strcmp(src.c_str(), "") == 0 || strcmp(dest.c_str(), "") == 0 || strcmp(width.c_str(), "") == 0 || strcmp(height.c_str(), "") == 0) {
         fprintf(stderr, "Invalid Parameters!");
         exit(1);
     }
-
+    if(strcmp(quality.c_str(), "") == 0) {
+        quality = "90";
+    }
     if(!(access(src.c_str(), F_OK|R_OK) == 0)){
         fprintf(stderr, "Incorrect permissions on files. Check read write status of provided file names.");
         exit(2);
@@ -70,13 +78,13 @@ int main(int argc, char *argv[]){
                 fprintf(stderr, "Unable to convert image! Proceeding with original source.");
                 source = temp;
         }
-        ret = resizeImage(source.c_str(), dest.c_str(), atoi(width.c_str()), atoi(height.c_str()), scaled);
+        ret = resizeImage(source.c_str(), dest.c_str(), atoi(width.c_str()), atoi(height.c_str()), scaled, atoi(quality.c_str()));
         if(strcmp(temp.c_str(), source.c_str()) == 0) {
                 printf("Removing %s : %d\n", temp.c_str(), remove(temp.c_str()));
         }
         return ret;
     } else {
-        return resizeImage(src.c_str(), dest.c_str(), atoi(width.c_str()), atoi(height.c_str()), scaled);
+        return resizeImage(src.c_str(), dest.c_str(), atoi(width.c_str()), atoi(height.c_str()), scaled, atoi(quality.c_str()));
     }
 }
 
@@ -116,7 +124,7 @@ int convertImage(const char* sc, const char* dest){
 	return 0;
 }
 
-int resizeImage(const char* sc, const char* dest, int width, int height, bool scale) {
+int resizeImage(const char* sc, const char* dest, int width, int height, bool scale, int quality) {
         cout<<"Loading image at "<<sc<<endl;
         IplImage *source = NULL;
         source = cvLoadImage(sc);
@@ -126,8 +134,8 @@ int resizeImage(const char* sc, const char* dest, int width, int height, bool sc
         }
 
         cout<<"Image loaded."<<endl;
-        
-        if(scale){
+
+        if(scale) {
                 printf("Scaling requested.\n");
                 int orig_height = source->height;
                 int orig_width = source->width;
@@ -139,11 +147,17 @@ int resizeImage(const char* sc, const char* dest, int width, int height, bool sc
         }
         if(width < 1) width = 1;
         if(height < 1) height = 1;
+        if(quality < 1) quality = 90;
+        int p[3];
+        p[0] = CV_IMWRITE_JPEG_QUALITY;
+        p[1] = quality;
+        p[2] = 0;
+
         printf("Resizing %s to %dx%d\n", sc, width, height);
 
         IplImage *destination = cvCreateImage( cvSize(width,height), source->depth, source->nChannels );
         cvResize(source, destination, CV_INTER_AREA);
-        cvSaveImage( dest, destination);
+        cvSaveImage( dest, destination, p);
         
         // clean up
         cvReleaseImage( &source);

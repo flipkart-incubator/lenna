@@ -32,6 +32,6 @@ metrics:
 
 # Logging settings.
 logging:
-  level: INFO
+  level: DEBUG
   loggers:
-    flipkart.rukmini: INFO
+    flipkart.rukmini: DEBUG

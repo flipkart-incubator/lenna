@@ -1,15 +1,13 @@
 package flipkart.rukmini.resources;
 
 import com.codahale.metrics.annotation.Timed;
+import com.google.common.base.Optional;
 import flipkart.rukmini.helpers.ImageResizeHelper;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -27,17 +25,17 @@ public class ScaledImageResource {
     private static final String CDN_HOST = "http://cdn-storage.nm.flipkart.com/image/%s";
 
     @GET
-    @Path("native/{resolution}/{imageUri:.*}")
+    @Path("{resolution}/{imageUri:.*}")
     @Produces("image/*")
     @Timed(name = "image-requests")
-    public Response scaledImage(@PathParam("resolution") int resolution, @PathParam("imageUri") String imageUri) {
+    public Response scaledImage(@PathParam("resolution") int resolution, @PathParam("imageUri") String imageUri, @QueryParam("q") Optional<Integer> quality) {
         File fInput = null;
         File fOutput = null;
         try {
             fInput = download(imageUri);
             if(!fInput.exists())
                 return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN).entity("Not Found").build();
-            fOutput = ImageResizeHelper.resize(fInput.getAbsolutePath(), resolution, resolution);
+            fOutput = ImageResizeHelper.resize(fInput.getAbsolutePath(), resolution, resolution, quality.or(90));
             byte data[] = FileUtils.readFileToByteArray(fOutput);
             return Response.ok(data).type("image/jpeg").build();
         } catch (IOException e) {
