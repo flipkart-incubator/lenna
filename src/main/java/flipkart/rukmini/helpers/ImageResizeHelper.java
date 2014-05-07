@@ -16,7 +16,13 @@ public class ImageResizeHelper {
 
     private static final Logger log = LoggerFactory.getLogger("ImageResizeHelper");
 
-    public static File resize(final String inputImagePath, final int height, final int width, final int quality) throws IOException, InterruptedException {
+    public static File resize(final String inputImagePath, final int height, final int width, final int quality)
+            throws IOException, InterruptedException {
+        return resizeNative(inputImagePath, height, width, quality);
+    }
+
+    private static File resizeNative(final String inputImagePath, final int height, final int width, final int quality)
+            throws IOException, InterruptedException {
         File fTemp = new File(FileUtils.getTempDirectoryPath() +"/" + UUID.randomUUID().toString() +".jpeg");
         log.debug("Converting image to: " +fTemp.getAbsolutePath());
         ProcessBuilder builder = new ProcessBuilder()

@@ -18,7 +18,7 @@ import java.net.URL;
 /**
  * Scaled image resource
  */
-@Path("/resize")
+@Path("/image")
 public class ScaledImageResource {
 
     private final Logger log = LoggerFactory.getLogger("ScaledImageResource");
@@ -30,17 +30,18 @@ public class ScaledImageResource {
     }
 
     @GET
-    @Path("{resolution}/{imageUri:.*}")
+    @Path("{width}/{height}/{imageUri:.*}")
     @Produces("image/*")
     @Timed(name = "image-requests")
-    public Response scaledImage(@PathParam("resolution") int resolution, @PathParam("imageUri") String imageUri, @QueryParam("q") Optional<Integer> quality) {
-        File fInput = null;
+    public Response scaledImage(@PathParam("width") int width, @PathParam("height") int height,
+                                @PathParam("imageUri") String imageUri, @QueryParam("q") Optional<Integer> quality) {
+        File fInput;
         File fOutput = null;
         try {
             fInput = download(imageUri);
             if(!fInput.exists())
                 return Response.status(Response.Status.NOT_FOUND).type(MediaType.TEXT_PLAIN).entity("Not Found").build();
-            fOutput = ImageResizeHelper.resize(fInput.getAbsolutePath(), resolution, resolution, quality.or(90));
+            fOutput = ImageResizeHelper.resize(fInput.getAbsolutePath(), height, width, quality.or(90));
             byte data[] = FileUtils.readFileToByteArray(fOutput);
             return Response.ok(data).type("image/jpeg").build();
         } catch (IOException e) {
