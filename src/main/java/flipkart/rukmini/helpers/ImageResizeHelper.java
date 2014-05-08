@@ -50,11 +50,10 @@ public class ImageResizeHelper {
         File fTemp = new File(FileUtils.getTempDirectoryPath() +"/" + UUID.randomUUID().toString() +".jpeg");
         log.debug("Converting image to: " +fTemp.getAbsolutePath());
         ProcessBuilder builder = new ProcessBuilder()
-                .command("convert", inputImagePath,
-                        "-resize", width +"x" +height,
-                        "-strip", "-interlace", "plane",
-                        "-quality", String.valueOf(quality),
-                        fTemp.getAbsolutePath())
+                .command("resize-image-magick", "-source", inputImagePath, "-dest",
+                        fTemp.getAbsolutePath(), "-h", String.valueOf(height),
+                        "-w", String.valueOf(width),
+                        "-q", String.valueOf(quality))
                 .directory(new File("/usr/bin"));
         log.debug("Convert command: " + StringUtils.join(builder.command(), ' '));
         Process process = builder.start();

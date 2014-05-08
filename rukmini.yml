@@ -38,4 +38,4 @@ logging:
 
 cdn: "http://cdn-storage.nm.flipkart.com/image/%s"
 
-mode: "native"
+mode: "magick"
