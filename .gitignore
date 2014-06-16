@@ -1,12 +1,10 @@
 /.idea/
-/project/boot/
-/project/plugins/project
 target/
-lib_managed/
-src_managed/
-test-output/
+out/
+pkg/
 dist/
-/deb
+deb/
+src/rukmini/rukmini
 .idea
 .idea_modules
 .DS_Store
@@ -19,4 +17,3 @@ logs
 *.swp
 *.pid
 *.tar.gz
-dependency-reduced-pom.xml

@@ -25,13 +25,14 @@ esac
 
 BUILD_DIR="${LOCAL_DIR}/build"
 DEB_DIR="${LOCAL_DIR}/deb"
-TARGET_DIR="${LOCAL_DIR}/target"
+
 
 CUR_SAVE_PWD=$(pwd)
 
 cd "${LOCAL_DIR}"
 
 DEB_DIR=deb
+
 if [ -e ${DEB_DIR} ]; then
     rm -rf ${DEB_DIR}
 fi
@@ -42,34 +43,24 @@ fi
 [ ! -d "${DEB_DIR}/var/lib/${PACKAGE}" ] && mkdir -p "${DEB_DIR}/var/lib/${PACKAGE}"
 [ ! -d "${DEB_DIR}/var/log/${PACKAGE}" ] && mkdir -p "${DEB_DIR}/var/log/${PACKAGE}"
 [ ! -d "${DEB_DIR}/etc/init.d" ] && mkdir -p "${DEB_DIR}/etc/init.d"
-[ ! -d "${DEB_DIR}/etc/${PACKAGE}" ] && mkdir -p "${DEB_DIR}/etc/${PACKAGE}"
 
 
-#Copy Debian packaging configuration & scripts
+# Copy Debian packaging configuration & scripts
 cp -r "${BUILD_DIR}/deb/DEBIAN" "${DEB_DIR}/"
-
-#Copy application service script
-cp -r "${BUILD_DIR}/deb/etc/init.d" "${DEB_DIR}/etc/"
-
-#Copy image resizer binary
+# Copy application service script
+cp -r "${BUILD_DIR}/deb/etc" "${DEB_DIR}/"
+# Copy go runtime (meh)
 cp -r "${BUILD_DIR}/deb/usr" "${DEB_DIR}/"
+# Copy app source files which will be compiled in postinst
+cp -r "${CUR_SAVE_PWD}/src" "${DEB_DIR}/var/lib/${PACKAGE}/"
 
-if [ "${ENV}" == "nm" ]; then
-cp -rf "${BUILD_DIR}/deb/etc/${PACKAGE}/${PACKAGE}-nm.yml" "${DEB_DIR}/etc/${PACKAGE}/${PACKAGE}.yml"
-fi
 if [ "${ENV}" == "stagech" ]; then
-cp -rf "${BUILD_DIR}/deb/etc/${PACKAGE}/${PACKAGE}-stagech.yml" "${DEB_DIR}/etc/${PACKAGE}/${PACKAGE}.yml"
+cp -rf "${DEB_DIR}/var/lib/${PACKAGE}/src/${PACKAGE}/conf/app-stage.conf" "${DEB_DIR}/var/lib/${PACKAGE}/src/${PACKAGE}/conf/app.conf"
 fi
-
-echo "Building ${PACKAGE}"
-mvn package
-echo "Building ${PACKAGE} successful"
-
-#Copy the service binary (fat jar)
-cp -r "${TARGET_DIR}/rukmini-1.0.jar" "${DEB_DIR}/var/lib/${PACKAGE}/"
 
 #Set executable permission for DEBIAN directory
 chmod -R 755 "${DEB_DIR}/DEBIAN"
+
 
 
 

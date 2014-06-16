@@ -24,64 +24,9 @@ PF_UID=9075
 PF_GID=9001
 
 RUKMINI_BASE_DIR=/var/lib/${PACKAGE}
-RUKMINI_JAR=/var/lib/${PACKAGE}/rukmini-1.0.jar
-RUKMINI_CONFIG=/etc/${PACKAGE}/rukmini.yml
+RUKMINI_EXE=${RUKMINI_BASE_DIR}/src/${PACKAGE}/${PACKAGE}
 RUKMINI_PID_PATH=/var/run/${PACKAGE}
 RUKMINI_PID_FILE=${RUKMINI_PID_PATH}/${PACKAGE}.pid
-
-#Memory settings
-JAVA_OPTS="${JAVA_OPTS} -Xms1024m"
-JAVA_OPTS="${JAVA_OPTS} -Xmx1024m"
-JAVA_OPTS="${JAVA_OPTS} -Xmn512m"
-JAVA_OPTS="${JAVA_OPTS} -XX:NewSize=512m"
-JAVA_OPTS="${JAVA_OPTS} -XX:MaxNewSize=512m"
-
-# Set Server JVM
-JAVA_OPTS="${JAVA_OPTS} -server"
-
-# Set timezone
-JAVA_OPTS="${JAVA_OPTS} -Duser.timezone=\"Asia/Kolkata\""
-
-# Set to headless, just in case
-JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true"
-
-#Set encoding to UTF-8
-JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8"
-
-#Program Name
-JAVA_OPTS="${JAVA_OPTS} -D${PACKAGE}"
-
-# Reduce the per-thread stack size
-JAVA_OPTS="${JAVA_OPTS} -Xss1M"
-
-# Force the JVM to use IPv4 stack
-JAVA_OPTS="${JAVA_OPTS} -Djava.net.preferIPv4Stack=true"
-
-# GC Options
-JAVA_OPTS="${JAVA_OPTS} -XX:+UseParNewGC"
-JAVA_OPTS="${JAVA_OPTS} -XX:-UseParallelGC"
-JAVA_OPTS="${JAVA_OPTS} -XX:+UseConcMarkSweepGC"
-JAVA_OPTS="${JAVA_OPTS} -XX:+CMSParallelRemarkEnabled"
-
-#Memory Setting
-JAVA_OPTS="${JAVA_OPTS} -XX:PermSize=256m"
-JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize=256m"
-
-#Enable super options (For HotSpot optimizations)
-JAVA_OPTS="${JAVA_OPTS} -XX:+AggressiveOpts"
-
-#Disable Biased locking
-JAVA_OPTS="${JAVA_OPTS} -XX:-UseBiasedLocking"
-
-# Causes the JVM to dump its heap on OutOfMemory.
-JAVA_OPTS="${JAVA_OPTS} -XX:+HeapDumpOnOutOfMemoryError"
-
-#Setup remote JMX monitoring
-JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote"
-JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.port=29011"
-JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.authenticate=false"
-JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.ssl=false"
-JAVA_OPTS="${JAVA_OPTS} -Dhazelcast.jmx=true"
 
 if [ ! -e ${RUKMINI_PID_PATH} ]; then
     mkdir -m 755 -p ${RUKMINI_PID_PATH}
@@ -111,17 +56,18 @@ start()
     start-stop-daemon --start --background --oknodo \
                 --umask 000 --user ${PACKAGE_USER} --chuid ${PACKAGE_USER} \
                 --make-pidfile --pidfile ${RUKMINI_PID_FILE} \
-                --exec ${JAVA} -- ${JAVA_OPTS} -jar ${RUKMINI_JAR} server ${RUKMINI_CONFIG} 2>&1 > /dev/null
+                --exec ${RUKMINI_EXE} 2>&1 > /dev/null
     return $?
 }
 
 stop()
 {
+    oor
     start-stop-daemon --stop --signal 9 \
                         --quiet --pidfile ${RUKMINI_PID_FILE} \
                         --retry 300 \
                         --user ${PACKAGE_USER} \
-                        --exec ${JAVA} -- ${JAVA_OPTS} -jar ${RUKMINI_JAR} server ${RUKMINI_CONFIG} 2>&1 > /dev/null
+                        --exec ${RUKMINI_EXE} 2>&1 > /dev/null
     return $?
 }
 
@@ -177,7 +123,7 @@ status()
 oor() {
     echo "Bringing API out of rotation..."
     API_HOST=`hostname`
-    ENDPOINT="http://"${API_HOST}":9100/oor"
+    ENDPOINT="http://"${API_HOST}":8081/oor"
     curl -XPOST ${ENDPOINT} || true
     sleep 10
     echo "Done"
@@ -186,7 +132,7 @@ oor() {
 inr() {
     echo "Bringing API into rotation..."
     API_HOST=`hostname`
-    ENDPOINT="http://"${API_HOST}":9100/inr"
+    ENDPOINT="http://"${API_HOST}":8081/inr"
     curl -XPOST ${ENDPOINT} || true
     echo "Done"
 }

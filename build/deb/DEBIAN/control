@@ -2,7 +2,7 @@ Package: _PACKAGE_
 Version: 1._VERSION_
 Section: flipkart/mobile
 Priority: standard
-Depends: chkconfig, libcv2.1, libcvaux2.1, libhighgui2.1, libmagickwand3, libjmagick6-java, libjmagick6-jni
+Depends: chkconfig, git, libmagickwand5, libmagickwand-dev
 Architecture: all
 Maintainer: Mobile Platform <mobile-platform@flipkart.com>
 Description: Rukmini - Image Delivery Service for mobile & devices
