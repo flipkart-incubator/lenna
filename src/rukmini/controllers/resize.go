@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"github.com/astaxie/beego"
-	"github.com/satori/go.uuid"
+	"github.com/satori/uuid"
 	"github.com/gographics/imagick/imagick"
 )
 
@@ -43,7 +43,7 @@ func (this *ResizeController) Get() {
 	}
 	defer response.Body.Close()
 	imageData, err := ioutil.ReadAll(response.Body)
-	if err = ioutil.WriteFile(fileName, imageData, 0777); err != nil {
+	if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 		errMessage := fmt.Sprintf("%s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
