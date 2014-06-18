@@ -1,10 +1,10 @@
 /.idea/
 target/
 out/
-pkg/
-dist/
-deb/
-src/rukmini/rukmini
+/pkg
+/dist
+/deb
+/src/rukmini/rukmini
 .idea
 .idea_modules
 .DS_Store
