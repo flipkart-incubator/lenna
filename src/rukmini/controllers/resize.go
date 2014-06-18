@@ -20,7 +20,15 @@ type ResizeController struct {
  */
 func (this *ResizeController) Get() {
 	width, err := strconv.ParseFloat(this.Ctx.Input.Param(":width"), 64)
+	if width < 0 || err != nil {
+		this.Ctx.Abort(400, "Invalid width specified")
+		return
+	}
 	height, err := strconv.ParseFloat(this.Ctx.Input.Param(":height"), 64)
+	if height < 0 || err != nil {
+		this.Ctx.Abort(400, "Invalid height specified")
+		return
+	}
 	imageUri := this.Ctx.Input.Param(":splat")
 	var quality int = 90
 	if len(this.Input().Get("q")) != 0 {
@@ -33,7 +41,7 @@ func (this *ResizeController) Get() {
 	}
 	u4 := uuid.NewV4()
 	fileName := fmt.Sprintf("/tmp/%s.jpeg", u4)
-	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String("cdn"), imageUri)
+	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String("image.cdn"), imageUri)
 	response, err := http.Get(downloadUrl)
 	if err != nil {
 		errMessage := fmt.Sprintf("%s", err)
