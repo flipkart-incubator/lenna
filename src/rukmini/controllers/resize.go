@@ -19,6 +19,8 @@ type ResizeController struct {
  * Resize the image and maintain aspect ratio
  */
 func (this *ResizeController) Get() {
+	//Source key that is in config which points to a source host
+	what := this.Ctx.Input.Param(":what")
 	width, err := strconv.ParseFloat(this.Ctx.Input.Param(":width"), 64)
 	if width < 0 || err != nil {
 		this.Ctx.Abort(400, "Invalid width specified")
@@ -41,7 +43,7 @@ func (this *ResizeController) Get() {
 	}
 	u4 := uuid.NewV4()
 	fileName := fmt.Sprintf("/tmp/%s.jpeg", u4)
-	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String("image.cdn"), imageUri)
+	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what +".source"), imageUri)
 	response, err := http.Get(downloadUrl)
 	if err != nil {
 		errMessage := fmt.Sprintf("%s", err)
