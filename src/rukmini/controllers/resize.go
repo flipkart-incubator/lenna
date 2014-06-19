@@ -49,6 +49,11 @@ func (this *ResizeController) Get() {
 		this.Ctx.Abort(500, errMessage)
 		return
 	}
+	if response.StatusCode != 200 {
+		beego.Error("Error downloading file: " +downloadUrl +" Status: " +response.StatusCode +"[" +response.Status +"]")
+		this.Ctx.Abort(response.StatusCode, response.Status)
+		return
+	}
 	defer response.Body.Close()
 	imageData, err := ioutil.ReadAll(response.Body)
 	if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
