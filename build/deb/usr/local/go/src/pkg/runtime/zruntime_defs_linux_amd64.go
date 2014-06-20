@@ -51,8 +51,8 @@ type gobuf struct {
 	sp	uint64
 	pc	uint64
 	g	*g
-	ret	uint64
 	ctxt	unsafe.Pointer
+	ret	uint64
 	lr	uint64
 }
 
@@ -64,7 +64,7 @@ type gcstats struct {
 	nsleep	uint64
 }
 
-type wincall struct {
+type libcall struct {
 	fn	func(unsafe.Pointer)
 	n	uint64
 	args	unsafe.Pointer
@@ -73,22 +73,17 @@ type wincall struct {
 	err	uint64
 }
 
-type seh struct {
-	prev	unsafe.Pointer
-	handler	unsafe.Pointer
-}
-
 type wincallbackcontext struct {
 	gobody	unsafe.Pointer
 	argsize	uint64
 	restorestack	uint64
+	cleanstack	uint8
 }
 
 type g struct {
 	stackguard0	uint64
 	stackbase	uint64
 	panicwrap	uint32
-	selgen	uint32
 	_defer	*_defer
 	_panic	*_panic
 	sched	gobuf
@@ -99,24 +94,23 @@ type g struct {
 	stackguard	uint64
 	stack0	uint64
 	stacksize	uint64
-	alllink	*g
 	param	unsafe.Pointer
 	status	int16
 	goid	int64
+	waitsince	int64
 	waitreason	*int8
 	schedlink	*g
 	ispanic	uint8
 	issystem	uint8
 	isbackground	uint8
 	preempt	uint8
+	paniconfault	uint8
 	raceignore	int8
 	m	*m
 	lockedm	*m
 	sig	int32
 	writenbuf	int32
 	writebuf	*uint8
-	dchunk	*deferchunk
-	dchunknext	*deferchunk
 	sigcode0	uint64
 	sigcode1	uint64
 	sigpc	uint64
@@ -145,10 +139,12 @@ type m struct {
 	throwing	int32
 	gcing	int32
 	locks	int32
+	softfloat	int32
 	dying	int32
 	profilehz	int32
 	helpgc	int32
 	spinning	uint8
+	blocked	uint8
 	fastrand	uint32
 	ncgocall	uint64
 	ncgo	int32
@@ -173,13 +169,11 @@ type m struct {
 	waitsemacount	uint32
 	waitsemalock	uint32
 	gcstats	gcstats
-	racecall	uint8
 	needextram	uint8
-	waitunlockf	func(*lock)
+	traceback	uint8
+	waitunlockf	func(*g, unsafe.Pointer) uint8
 	waitlock	unsafe.Pointer
-	settype_buf	[1024]uint64
-	settype_bufsize	uint64
-	seh	*seh
+	forkstackguard	uint64
 	end	[0]uint64
 }
 
@@ -192,10 +186,12 @@ type p struct {
 	syscalltick	uint32
 	m	*m
 	mcache	*mcache
-	runq	**g
-	runqhead	int32
-	runqtail	int32
-	runqsize	int32
+	deferpool	[5]*_defer
+	goidcache	uint64
+	goidcacheend	uint64
+	runqhead	uint32
+	runqtail	uint32
+	runq	[256]*g
 	gfree	*g
 	gfreecnt	int32
 	pad	[64]uint8
@@ -208,8 +204,8 @@ type stktop struct {
 	argsize	uint32
 	panicwrap	uint32
 	argp	*uint8
-	free	uint64
 	_panic	uint8
+	malloced	uint8
 }
 
 type sigtab struct {
@@ -286,12 +282,16 @@ type cgomal struct {
 }
 
 type debugvars struct {
+	allocfreetrace	int32
+	efence	int32
 	gctrace	int32
-	schedtrace	int32
+	gcdead	int32
 	scheddetail	int32
+	schedtrace	int32
 }
 
 var precisestack	uint8
+var copystack	uint8
 type alg struct {
 	hash	func(*uint64, uint64, unsafe.Pointer)
 	equal	func(*uint8, uint64, unsafe.Pointer, unsafe.Pointer)
@@ -305,7 +305,6 @@ var startup_random_data_len	uint32
 type _defer struct {
 	siz	int32
 	special	uint8
-	free	uint8
 	argp	*uint8
 	pc	*uint8
 	fn	*funcval
@@ -313,21 +312,19 @@ type _defer struct {
 	args	[1]unsafe.Pointer
 }
 
-type deferchunk struct {
-	prev	*deferchunk
-	off	uint64
-}
-
 type _panic struct {
 	arg	eface
 	stackbase	uint64
 	link	*_panic
+	_defer	*_defer
 	recovered	uint8
+	aborted	uint8
 }
 
 type stkframe struct {
 	fn	*_func
 	pc	uint64
+	continpc	uint64
 	lr	uint64
 	sp	uint64
 	fp	uint64
@@ -338,7 +335,8 @@ type stkframe struct {
 
 var emptystring	string
 var zerobase	uint64
-var allg	*g
+var allg	**g
+var allglen	uint64
 var lastg	*g
 var allm	*m
 var allp	**p
@@ -410,12 +408,12 @@ type mstats struct {
 	numgc	uint32
 	enablegc	uint8
 	debuggc	uint8
-	by_size	[61]_1_
+	by_size	[67]_1_
 }
 
 var memstats	mstats
-var class_to_size	[61]int32
-var class_to_allocnpages	[61]int32
+var class_to_size	[67]int32
+var class_to_allocnpages	[67]int32
 var size_to_class8	[129]int8
 var size_to_class128	[249]int8
 type mcachelist struct {
@@ -426,16 +424,38 @@ type mcachelist struct {
 type mcache struct {
 	next_sample	int32
 	local_cachealloc	int64
-	list	[61]mcachelist
+	tiny	*uint8
+	tinysize	uint64
+	alloc	[67]*mspan
+	free	[67]mcachelist
 	local_nlookup	uint64
 	local_largefree	uint64
 	local_nlargefree	uint64
-	local_nsmallfree	[61]uint64
+	local_nsmallfree	[67]uint64
 }
 
 type mtypes struct {
 	compression	uint8
 	data	uint64
+}
+
+type special struct {
+	next	*special
+	offset	uint16
+	kind	uint8
+}
+
+type specialfinalizer struct {
+	special
+	fn	*funcval
+	nret	uint64
+	fint	*_type
+	ot	*ptrtype
+}
+
+type specialprofile struct {
+	special
+	b	*bucket
 }
 
 type mspan struct {
@@ -444,14 +464,20 @@ type mspan struct {
 	start	uint64
 	npages	uint64
 	freelist	*mlink
-	ref	uint32
-	sizeclass	int32
+	sweepgen	uint32
+	ref	uint16
+	sizeclass	uint8
+	incache	uint8
+	state	uint8
+	needzero	uint8
 	elemsize	uint64
-	state	uint32
 	unusedsince	int64
 	npreleased	uint64
 	limit	*uint8
 	types	mtypes
+	speciallock	lock
+	specials	*special
+	freebuf	*mlink
 }
 
 type mcentral struct {
@@ -469,11 +495,16 @@ type _2_ struct {
 
 type mheap struct {
 	lock
-	free	[256]mspan
-	large	mspan
+	free	[128]mspan
+	freelarge	mspan
+	busy	[128]mspan
+	busylarge	mspan
 	allspans	**mspan
+	sweepspans	**mspan
 	nspan	uint32
 	nspancap	uint32
+	sweepgen	uint32
+	sweepdone	uint32
 	spans	**mspan
 	spans_mapped	uint64
 	bitmap	*uint8
@@ -481,15 +512,32 @@ type mheap struct {
 	arena_start	*uint8
 	arena_used	*uint8
 	arena_end	*uint8
-	central	[61]_2_
+	arena_reserved	uint8
+	central	[67]_2_
 	spanalloc	fixalloc
 	cachealloc	fixalloc
+	specialfinalizeralloc	fixalloc
+	specialprofilealloc	fixalloc
+	speciallock	lock
 	largefree	uint64
 	nlargefree	uint64
-	nsmallfree	[61]uint64
+	nsmallfree	[67]uint64
 }
 
 var checking	int32
+var fingwait	uint8
+var fingwake	uint8
+type bitvector struct {
+	n	int32
+	data	*uint32
+}
+
+type stackmap struct {
+	n	int32
+	nbit	int32
+	data	[0]uint32
+}
+
 type _type struct {
 	size	uint64
 	hash	uint32
@@ -502,6 +550,7 @@ type _type struct {
 	_string	*string
 	x	*uncommontype
 	ptrto	*_type
+	zero	*uint8
 }
 
 type method struct {
@@ -563,6 +612,140 @@ type ptrtype struct {
 	elem	*_type
 }
 
+type bucket struct {
+	tophash	[8]uint8
+	overflow	*bucket
+	data	[1]uint64
+}
+
+type hmap struct {
+	count	uint64
+	flags	uint32
+	hash0	uint32
+	b	uint8
+	keysize	uint8
+	valuesize	uint8
+	bucketsize	uint16
+	buckets	*uint8
+	oldbuckets	*uint8
+	nevacuate	uint64
+}
+
+type hiter struct {
+	key	*uint8
+	value	*uint8
+	t	*maptype
+	h	*hmap
+	buckets	*uint8
+	bptr	*bucket
+	offset	uint8
+	done	uint8
+	b	uint8
+	bucket	uint64
+	i	uint64
+	check_bucket	int64
+}
+
+type sudog struct {
+	g	*g
+	selectdone	*uint32
+	link	*sudog
+	releasetime	int64
+	elem	*uint8
+}
+
+type waitq struct {
+	first	*sudog
+	last	*sudog
+}
+
+type hchan struct {
+	qcount	uint64
+	dataqsiz	uint64
+	elemsize	uint16
+	pad	uint16
+	closed	uint8
+	elemtype	*_type
+	sendx	uint64
+	recvx	uint64
+	recvq	waitq
+	sendq	waitq
+	lock
+}
+
+type scase struct {
+	sg	sudog
+	_chan	*hchan
+	pc	*uint8
+	kind	uint16
+	so	uint16
+	receivedp	*uint8
+}
+
+type _select struct {
+	tcase	uint16
+	ncase	uint16
+	pollorder	*uint16
+	lockorder	**hchan
+	scase	[1]scase
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 type sched struct {
 	lock
 	goidgen	uint64
@@ -592,12 +775,15 @@ var m0	m
 var g0	g
 var extram	*m
 var newprocs	int32
+var allglock	lock
+var allgcap	uint64
 var scavenger	funcval
 var initdone	funcval
 var _cgo_thread_start	func(unsafe.Pointer)
 type cgothreadstart struct {
 	m	*m
 	g	*g
+	tls	*uint64
 	fn	func()
 }
 
@@ -609,6 +795,7 @@ type _3_ struct {
 }
 
 var prof	_3_
+var etext	[0]uint8
 type pdesc struct {
 	schedtick	uint32
 	schedwhen	int64
@@ -616,259 +803,8 @@ type pdesc struct {
 	syscallwhen	int64
 }
 
+var externalthreadhandlerp	uint64
 var experiment	[0]int8
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-var hash	[1009]*itab
-var ifacelock	lock
-var typelink	[0]*_type
-var etypelink	[0]*_type
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-type bucket struct {
-	tophash	[8]uint8
-	overflow	*bucket
-	data	[1]uint8
-}
-
-type hmap struct {
-	count	uint64
-	flags	uint32
-	hash0	uint32
-	b	uint8
-	keysize	uint8
-	valuesize	uint8
-	bucketsize	uint16
-	buckets	*uint8
-	oldbuckets	*uint8
-	nevacuate	uint64
-}
-
-var empty_value	[128]uint8
-type hash_iter struct {
-	key	*uint8
-	value	*uint8
-	t	*maptype
-	h	*hmap
-	endbucket	uint64
-	wrapped	uint8
-	b	uint8
-	buckets	*uint8
-	bucket	uint64
-	bptr	*bucket
-	i	uint64
-	check_bucket	int64
-}
-
-var hashload	float64
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-type sudog struct {
-	g	*g
-	selgen	uint32
-	link	*sudog
-	releasetime	int64
-	elem	*uint8
-}
-
-type waitq struct {
-	first	*sudog
-	last	*sudog
-}
-
-type hchan struct {
-	qcount	uint64
-	dataqsiz	uint64
-	elemsize	uint16
-	pad	uint16
-	closed	uint8
-	elemalg	*alg
-	sendx	uint64
-	recvx	uint64
-	recvq	waitq
-	sendq	waitq
-	lock
-}
-
-type scase struct {
-	sg	sudog
-	_chan	*hchan
-	pc	*uint8
-	kind	uint16
-	so	uint16
-	receivedp	*uint8
-}
-
-type _select struct {
-	tcase	uint16
-	ncase	uint16
-	pollorder	*uint16
-	lockorder	**hchan
-	scase	[1]scase
-}
-
-type runtimeselect struct {
-	dir	uint64
-	typ	*chantype
-	ch	*hchan
-	val	uint64
-}
-
-
-
 
 
 

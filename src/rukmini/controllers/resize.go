@@ -52,7 +52,7 @@ func (this *ResizeController) Get() {
 		return
 	}
 	if response.StatusCode != 200 {
-		beego.Error("Error downloading file: " +downloadUrl +" Status: " +response.StatusCode +"[" +response.Status +"]")
+		beego.Error("Error downloading file: " +downloadUrl +" Status: " +strconv.Itoa(response.StatusCode) +"[" +response.Status +"]")
 		this.Ctx.Abort(response.StatusCode, response.Status)
 		return
 	}

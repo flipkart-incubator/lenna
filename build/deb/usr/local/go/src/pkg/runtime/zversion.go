@@ -3,4 +3,4 @@
 package runtime
 
 const defaultGoroot = `/usr/local/go`
-const theVersion = `go1.2.2`
+const theVersion = `go1.3`
