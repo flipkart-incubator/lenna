@@ -1,0 +1,13 @@
+[submodule "src/github.com/astaxie/beego"]
+    path = src/github.com/astaxie/beego
+    url = https://github.com/astaxie/beego
+[submodule "src/github.com/gographics/imagick"]
+	path = src/github.com/gographics/imagick
+	url = https://github.com/gographics/imagick/imagick
+[submodule "src/github.com/satori/uuid"]
+	path = src/github.com/satori/uuid
+	url = https://github.com/satori/uuid
+[submodule "src/github.com/lazywei/go-opencv"]
+	path = src/github.com/lazywei/go-opencv
+	url = https://github.com/lazywei/go-opencv
+	
