@@ -8,8 +8,8 @@ out/
 .idea
 .idea_modules
 .DS_Store
-log
-logs
+/log
+/logs
 *.log
 *.iml
 *.ipr
