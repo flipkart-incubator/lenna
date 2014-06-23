@@ -5,3 +5,9 @@ PACKAGE_USER=rukmini
 PACKAGE_GROUP=rukmini
 PF_UID=9075
 PF_GID=9001
+
+HOST_NAME=`hostname -f`
+IS_HOST_PRESENT=`grep ${HOST_NAME} /etc/hosts | wc -l`
+if [ ${IS_HOST_PRESENT} -eq 0 ]; then
+    echo "::1 localhost ip6-localhost ip6-loopback `hostname -f`" >> /etc/hosts
+fi

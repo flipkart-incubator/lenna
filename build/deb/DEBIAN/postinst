@@ -29,6 +29,7 @@ if [ "$1" == "configure" ] ; then
  	    mkdir -p /var/log/${PACKAGE}
  	    touch /var/log/${PACKAGE}/${PACKAGE}.log
     fi
+
     chmod -R a+rwx /var/log/${PACKAGE}
     chown -R ${PF_UID}:${PF_GID} /var/log/${PACKAGE}
     chmod a+x /etc/init.d/${PACKAGE}
