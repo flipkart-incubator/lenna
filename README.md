@@ -2,10 +2,10 @@
 
 
 ## Dependencies
-* go 1.3
-* beego
-* imagemagick
-* magickwand
+* [go 1.3](http://golang.org/)
+* [beego](http://beego.me/)
+* [libmagickwand5](https://packages.debian.org/wheezy/libmagickwand5)
+* [libmagickwand-dev](https://packages.debian.org/wheezy/libmagickwand-dev)
 
 
 ## Development Setup Instructions on OSX
@@ -36,3 +36,7 @@
 * Set environment variables `PATH=/usr/local/bin:/usr/bin:$PATH;GOPATH=<product_base_directory>/rukmini;GOROOT=;`
 * Set script to run: `<product_base_directory>/src/rukmini/main.go`
 
+### Setup hot code replace (bee tool)
+* Set `GOPATH` to go home: `export GOPATH=/usr/local/go`
+* Install bee tool: `go get github.com/beego/bee`
+* bee tool documentation: `http://beego.me/docs/install/bee.md`
