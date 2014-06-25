@@ -10,4 +10,6 @@
 [submodule "src/github.com/lazywei/go-opencv"]
 	path = src/github.com/lazywei/go-opencv
 	url = https://github.com/lazywei/go-opencv
-	
+[submodule "src/github.com/libthrift"]
+	path = src/github.com/libthrift
+	url = https://git-wip-us.apache.org/repos/asf/thrift
