@@ -5,6 +5,8 @@ out/
 /dist
 /deb
 /src/rukmini/rukmini
+/src/rukmini/scripts/producer
+/src/rukmini/scripts/consumer
 .idea
 .idea_modules
 .DS_Store

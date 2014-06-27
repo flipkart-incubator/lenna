@@ -8,7 +8,7 @@ import (
 
 type RabbitMQConfig struct {
 	AmqpConnection string
-	QueueName string
+	QueueName      string
 }
 
 type RabbitMQClient struct {
@@ -31,7 +31,7 @@ func (this *RabbitMQConfig) CreateChannel(bulkSize int, concurrency int) (*Rabbi
 		return nil, err
 	}
 	//TODO: Check more about Qos
-//	ch.Qos(bulkSize, concurrency * bulkSize, false)
+	//	ch.Qos(bulkSize, concurrency * bulkSize, false)
 
 	rabbitMQClient := RabbitMQClient{Channel: ch, Config: this}
 	return &rabbitMQClient, nil
@@ -44,16 +44,15 @@ func (this *RabbitMQClient) Write(urls map[string]bool) int {
 	for key, _ := range urls {
 		index++
 		url := constructRukminiUrl(key)
-		fmt.Println("old = ", key, "new = ", url)
 		err := this.Channel.Publish(
 			"",           // exchange
 			this.Config.QueueName, // routing key
 			false,        // mandatory
 			false,
 			amqp.Publishing {
-				DeliveryMode:  amqp.Persistent,
-				ContentType:     "text/plain",
-				Body:            []byte(url),
+			DeliveryMode:  amqp.Persistent,
+			ContentType:     "text/plain",
+			Body:            []byte(url),
 		})
 		if err != nil {
 			fmt.Println(err, "Failure|amqpConnectionOpen|URLS=", key, " Failed to publish a message")
@@ -65,29 +64,30 @@ func (this *RabbitMQClient) Write(urls map[string]bool) int {
 
 func constructRukminiUrl(url string) string {
 	newUrl := strings.SplitN(url, "/", 3)
-	stringArray := []string{"http:/", "rukmini1.flixcart.com", newUrl[1], "500/500", newUrl[2]}
-	fmt.Println(stringArray)
+	stringArray := []string{"http:/", "{host}", newUrl[1], "{width}/{height}", newUrl[2]}
 	return strings.Join(stringArray, "/")
 }
 
-func (this *RabbitMQClient) Read() bool {
+func (this *RabbitMQClient) Read(callback func(string) bool) bool {
 
 	resp, err := this.Channel.Consume(this.Config.QueueName, "", false, false, false, false, nil)
+	<-resp
 	if err != nil {
 		fmt.Println(err, "Failure|amqpConnection|Unable to consume from RabbitMQ")
 		return false
 	}
 	done := make(chan bool)
-	go func() {
-		for eachMessage := range resp {
+
+	for eachMessage := range resp {
+		go func() {
 			fmt.Println("Success|amqpPop|URL=", string(eachMessage.Body), " Pop successful")
 
-			done := WarmUpCache(string(eachMessage.Body))
+			done := callback(string(eachMessage.Body))
 			if done {
 				this.Channel.Ack(eachMessage.DeliveryTag, false)
 			}
-		}
-	}()
+		}()
+	}
 	<-done
 	return true;
 }
