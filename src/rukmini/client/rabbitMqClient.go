@@ -3,6 +3,7 @@ package client
 import (
 	"github.com/streadway/amqp"
 	"fmt"
+	"strings"
 )
 
 type RabbitMQConfig struct {
@@ -29,17 +30,21 @@ func (this *RabbitMQConfig) CreateChannel(bulkSize int, concurrency int) (*Rabbi
 		fmt.Println(err, "Failure|amqpConnectionOpen| Failed to open a channel")
 		return nil, err
 	}
-	ch.Qos(bulkSize, concurrency * bulkSize, false)
+	//TODO: Check more about Qos
+//	ch.Qos(bulkSize, concurrency * bulkSize, false)
 
 	rabbitMQClient := RabbitMQClient{Channel: ch, Config: this}
 	return &rabbitMQClient, nil
 }
 
-func (this *RabbitMQClient) Write(urls []string) int {
+func (this *RabbitMQClient) Write(urls map[string]bool) int {
 
 	//Publish all url to a queue
-	for i := 0; i < len(urls); i++ {
-		fmt.Println(urls[i])
+	index := 0
+	for key, _ := range urls {
+		index++
+		url := constructRukminiUrl(key)
+		fmt.Println("old = ", key, "new = ", url)
 		err := this.Channel.Publish(
 			"",           // exchange
 			this.Config.QueueName, // routing key
@@ -48,14 +53,21 @@ func (this *RabbitMQClient) Write(urls []string) int {
 			amqp.Publishing {
 				DeliveryMode:  amqp.Persistent,
 				ContentType:     "text/plain",
-				Body:            []byte(urls[i]),
+				Body:            []byte(url),
 		})
 		if err != nil {
-			fmt.Println(err, "Failure|amqpConnectionOpen|URLS=", urls[i], " Failed to publish a message")
-			return i
+			fmt.Println(err, "Failure|amqpConnectionOpen|URLS=", key, " Failed to publish a message")
+			return index
 		}
 	}
 	return len(urls)
+}
+
+func constructRukminiUrl(url string) string {
+	newUrl := strings.SplitN(url, "/", 3)
+	stringArray := []string{"http:/", "rukmini1.flixcart.com", newUrl[1], "500/500", newUrl[2]}
+	fmt.Println(stringArray)
+	return strings.Join(stringArray, "/")
 }
 
 func (this *RabbitMQClient) Read() bool {
@@ -68,7 +80,7 @@ func (this *RabbitMQClient) Read() bool {
 	done := make(chan bool)
 	go func() {
 		for eachMessage := range resp {
-			fmt.Println("Success|amqpPop|URL=", eachMessage.Body, " Pop successful")
+			fmt.Println("Success|amqpPop|URL=", string(eachMessage.Body), " Pop successful")
 
 			done := WarmUpCache(string(eachMessage.Body))
 			if done {
