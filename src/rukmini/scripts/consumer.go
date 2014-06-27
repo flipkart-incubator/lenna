@@ -29,3 +29,4 @@ func main() {
 	callback := rukminiConfig.WarmUpCache
 	amqpClientRead.Read(callback)
 }
+

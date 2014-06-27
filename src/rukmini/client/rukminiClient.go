@@ -24,16 +24,14 @@ func (this *RukminiConfig) WarmUpCache(url string) bool {
 		go func() {
 			resp, err := http.Get(newUrl)
 			if err != nil || (resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotModified) {
-				fmt.Println("NO..........URL=", newUrl, " Warmup in rukmini failed")
 				done <- false
 			} else {
-				fmt.Println("YES..........URL=", newUrl, " Warmup in rukmini failed")
 				done <- true
 			}
 		}()
 	}
-	for idx := 0; idx < len(allWidthSize); idx++ {
-		if !(<- done) {
+	for result := range done {
+		if !result {
 			fmt.Println("Failure|RukminiWarmUp|URL=", url, " Warmup in rukmini failed")
 			return false
 		}

@@ -76,18 +76,26 @@ func (this *RabbitMQClient) Read(callback func(string) bool) bool {
 		fmt.Println(err, "Failure|amqpConnection|Unable to consume from RabbitMQ")
 		return false
 	}
-	done := make(chan bool)
+
+	this.process(resp, callback)
+	return true;
+}
+
+func (this *RabbitMQClient) process(resp <-chan amqp.Delivery, callback func(string) bool) {
 
 	for eachMessage := range resp {
 		go func() {
 			fmt.Println("Success|amqpPop|URL=", string(eachMessage.Body), " Pop successful")
 
-			done := callback(string(eachMessage.Body))
-			if done {
+			if callback != nil {
+				done := callback(string(eachMessage.Body))
+				if done {
+					this.Channel.Ack(eachMessage.DeliveryTag, false)
+				}
+			} else {
 				this.Channel.Ack(eachMessage.DeliveryTag, false)
 			}
 		}()
 	}
-	<-done
-	return true;
+
 }
