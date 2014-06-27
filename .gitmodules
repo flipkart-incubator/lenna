@@ -10,4 +10,9 @@
 [submodule "src/github.com/lazywei/go-opencv"]
 	path = src/github.com/lazywei/go-opencv
 	url = https://github.com/lazywei/go-opencv
-	
+[submodule "src/git-wip-us.apache.org"]
+	path = src/git-wip-us.apache.org
+	url = https://git-wip-us.apache.org/repos/asf/thrift
+[submodule "src/github.com/streadway/amqp"]
+	path = src/github.com/streadway/amqp
+	url = http://github.com/streadway/amqp
