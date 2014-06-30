@@ -16,3 +16,8 @@
 [submodule "src/github.com/streadway/amqp"]
 	path = src/github.com/streadway/amqp
 	url = http://github.com/streadway/amqp
+[submodule "src/github.com/samuel/go-thrift"]
+	path = src/github.com/samuel/go-thrift
+	url = http://github.com/samuel/go-thrift
+
+
