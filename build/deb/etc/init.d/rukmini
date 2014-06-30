@@ -53,7 +53,7 @@ ACTION="$1"
 
 start()
 {
-    start-stop-daemon --start --background --oknodo \
+    /sbin/start-stop-daemon --start --background --oknodo \
                 --umask 000 --user ${PACKAGE_USER} --chuid ${PACKAGE_USER} \
                 --make-pidfile --pidfile ${RUKMINI_PID_FILE} \
                 --exec ${RUKMINI_EXE} 2>&1 > /dev/null
@@ -63,7 +63,7 @@ start()
 stop()
 {
     oor
-    start-stop-daemon --stop --signal 9 \
+    /sbin/start-stop-daemon --stop --signal 9 \
                         --quiet --pidfile ${RUKMINI_PID_FILE} \
                         --retry 300 \
                         --user ${PACKAGE_USER} \
