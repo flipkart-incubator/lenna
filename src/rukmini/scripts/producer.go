@@ -21,6 +21,8 @@ func main() {
 	vertical := flag.String("vertical", "mobile", "vertical for which images are to be populated")
 	versionArg := flag.String("versions", "", "version for which images are to be populated. Versions should be comma separated")
 
+	flag.Parse()
+
 	version := []int{}
 	if *versionArg != "" {
 		versionStringArray := strings.Split(*versionArg, ",")
