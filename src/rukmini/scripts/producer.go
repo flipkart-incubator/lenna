@@ -18,10 +18,15 @@ const mqReadBulkSize int = 1
 
 func main() {
 	batchSize := flag.Int("batchSize", 10, "batch size to read from CMS")
-	vertical := flag.String("vertical", "mobile", "vertical for which images are to be populated")
+	vertical := flag.String("vertical", "", "vertical for which images are to be populated")
 	versionArg := flag.String("versions", "", "version for which images are to be populated. Versions should be comma separated")
 
 	flag.Parse()
+
+	if *vertical == "" {
+		fmt.Println("No vertical name provided")
+		os.Exit(-1)
+	}
 
 	version := []int{}
 	if *versionArg != "" {
