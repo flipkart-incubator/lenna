@@ -43,7 +43,7 @@ if [ "$1" == "configure" ] ; then
     go build
     echo "Compilation complete!"
 
-    if [ ! -d "/usr/${PACKAGE}/bin" ];
+    if [ ! -d "/usr/${PACKAGE}/bin" ]; then
         mkdir -p /usr/${PACKAGE}/bin
     fi
     #Compile scripts
