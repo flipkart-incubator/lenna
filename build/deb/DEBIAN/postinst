@@ -43,7 +43,7 @@ if [ "$1" == "configure" ] ; then
     go build
     echo "Compilation complete!"
 
-    if [ ! -d "/usr/${PACKAGE}/bin" ]; then
+    if [ ! -d "/usr/${PACKAGE}/bin" ];
         mkdir -p /usr/${PACKAGE}/bin
     fi
     #Compile scripts
@@ -60,8 +60,8 @@ if [ "$1" == "configure" ] ; then
     echo "Completed scripts!!!"
 
     chmod -R a+rwx /var/lib/${PACKAGE}/src/${PACKAGE}/${PACKAGE}
-    chmod 777 /etc/init.d/producer
-    chmod 777 /etc/init.d/consumer
+    chmod 777 /usr/${PACKAGE}/bin/producer
+    chmod 777 /usr/${PACKAGE}/bin/consumer
 
     sudo chkconfig --level 2345  ${PACKAGE} on
     sudo /etc/init.d/${PACKAGE} stop || true
