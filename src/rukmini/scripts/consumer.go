@@ -13,13 +13,12 @@ const queueName string = "rukmini_jobs"
 const concurrency int = 1
 
 func main() {
-	host := flag.String("RukminiHost", "rukmini.flixcart.com", "rukmini host which is to be called")
 	batchSize := flag.Int("batchSize", 1000, "batch size to read from Queue")
 
 	flag.Parse()
 
 	rabbitMQConfig := client.RabbitMQConfig{ AmqpConnection: amqpConnection, QueueName :queueName}
-	rukminiConfig := client.RukminiConfig{ Host : *host}
+	rukminiConfig := client.RukminiConfig{ }
 	amqpClientRead, err := rabbitMQConfig.CreateChannel(*batchSize, concurrency)
 
 

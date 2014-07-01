@@ -48,9 +48,11 @@ if [ "$1" == "configure" ] ; then
     cd /var/lib/rukmini/src/rukmini/scripts/
     echo "Compiling consumer script"
     go build consumer.go
+    cp /var/lib/rukmini/src/rukmini/scripts/consumer /usr/rukmini/bin
     echo "Compiled consumer"
     echo "Compiling producer script"
     go build producer.go
+    cp /var/lib/rukmini/src/rukmini/scripts/producer /usr/rukmini/bin
     echo "Compiled producer"
     echo "Completed scripts!!!"
 

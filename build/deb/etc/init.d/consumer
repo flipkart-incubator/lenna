@@ -1,4 +1,0 @@
-#! /bin/sh
-# /etc/init.d/consumer
-
-/var/lib/rukmini/src/rukmini/scripts/consumer

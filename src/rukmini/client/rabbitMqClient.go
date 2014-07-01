@@ -84,7 +84,7 @@ func (this *RabbitMQClient) Read(callback func(string) bool) bool {
 func (this *RabbitMQClient) process(resp <-chan amqp.Delivery, callback func(string) bool) {
 
 	for eachMessage := range resp {
-		go func() {
+//		go func() {
 			fmt.Println("Success|amqpPop|URL=", string(eachMessage.Body), " Pop successful")
 
 			if callback != nil {
@@ -95,7 +95,7 @@ func (this *RabbitMQClient) process(resp <-chan amqp.Delivery, callback func(str
 			} else {
 				this.Channel.Ack(eachMessage.DeliveryTag, false)
 			}
-		}()
+//		}()
 	}
 
 }
