@@ -64,6 +64,7 @@ func (this *ResizeController) Get() {
 		this.Ctx.Abort(500, errMessage)
 		return
 	}
+	defer os.Remove(fileName)
 	imagick.Initialize()
 	// Schedule cleanup
 	defer imagick.Terminate()
@@ -81,6 +82,10 @@ func (this *ResizeController) Get() {
 	}
 	var original_width = mw.GetImageWidth()
 	var original_height = mw.GetImageHeight()
+	if original_height < height || original_width < width {
+		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+		return
+	}
 	//Preserve aspect ratio
 	if uint(width) > original_width {
 		ratio := float64(original_width / uint(width))
@@ -121,6 +126,5 @@ func (this *ResizeController) Get() {
 		this.Ctx.Abort(500, errMessage)
 		return
 	}
-	defer os.Remove(fileName)
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 }
