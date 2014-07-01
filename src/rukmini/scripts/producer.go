@@ -45,7 +45,7 @@ func main() {
 	spCMSConfig := client.SpCmsConfig{Host : *host}
 
 	rabbitMQConfig := client.RabbitMQConfig{ AmqpConnection: amqpConnection, QueueName :queueName}
-	amqpClientWrite, err := rabbitMQConfig.CreateChannel(mqReadBulkSize, concurrency)
+	amqpClientWrite, err := rabbitMQConfig.CreateChannel()
 
 	if err != nil {
 		fmt.Println("unable to create rabbitMqChannel")
