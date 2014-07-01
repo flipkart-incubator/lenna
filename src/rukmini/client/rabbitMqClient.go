@@ -9,11 +9,13 @@ import (
 type RabbitMQConfig struct {
 	AmqpConnection string
 	QueueName      string
+	SideLineQueueName      string
 }
 
 type RabbitMQClient struct {
 	Channel *amqp.Channel
 	Config *RabbitMQConfig
+	Connection *amqp.Connection
 }
 
 func (this *RabbitMQConfig) CreateChannel(bulkSize int, concurrency int) (*RabbitMQClient, error) {
@@ -23,7 +25,7 @@ func (this *RabbitMQConfig) CreateChannel(bulkSize int, concurrency int) (*Rabbi
 		fmt.Println(err, "Failure|amqpConnectionOpen| Failed to connect to RabbitMQ")
 		return nil, err
 	}
-
+//	conn.NotifyClose()
 	//Create channel
 	ch, err := conn.Channel()
 	if err != nil {
@@ -31,9 +33,10 @@ func (this *RabbitMQConfig) CreateChannel(bulkSize int, concurrency int) (*Rabbi
 		return nil, err
 	}
 	//TODO: Check more about Qos
-	//	ch.Qos(bulkSize, concurrency * bulkSize, false)
+//	ch.Qos(bulkSize, concurrency * bulkSize, false)
+//	defer ch.Close()
 
-	rabbitMQClient := RabbitMQClient{Channel: ch, Config: this}
+	rabbitMQClient := RabbitMQClient{Channel: ch, Config: this, Connection: conn}
 	return &rabbitMQClient, nil
 }
 
@@ -71,7 +74,8 @@ func constructRukminiUrl(url string) string {
 func (this *RabbitMQClient) Read(callback func(string) bool) bool {
 
 	resp, err := this.Channel.Consume(this.Config.QueueName, "", false, false, false, false, nil)
-	<-resp
+//	this.Channel.Qos(10, 10 * 2, false)
+
 	if err != nil {
 		fmt.Println(err, "Failure|amqpConnection|Unable to consume from RabbitMQ")
 		return false
@@ -85,11 +89,28 @@ func (this *RabbitMQClient) process(resp <-chan amqp.Delivery, callback func(str
 
 	for eachMessage := range resp {
 //		go func() {
-			fmt.Println("Success|amqpPop|URL=", string(eachMessage.Body), " Pop successful")
+//			fmt.Println("Success|amqpPop|URL=", string(eachMessage.Body), " Pop successful")
 
 			if callback != nil {
-				done := callback(string(eachMessage.Body))
+				url := string(eachMessage.Body)
+				done := callback(url)
+				fmt.Println("INFO|amqpPop|URL=", url, "CallbackStatus=", done)
 				if done {
+					this.Channel.Ack(eachMessage.DeliveryTag, false)
+				} else {
+					err := this.Channel.Publish(
+						"",           // exchange
+						this.Config.SideLineQueueName, // routing key
+						false,        // mandatory
+						false,
+						amqp.Publishing {
+						DeliveryMode:  amqp.Persistent,
+						ContentType:     "text/plain",
+						Body:            []byte(url),
+					})
+					if err != nil {
+						fmt.Println(err, "Failure|amqpSidelineWrite|URLS=", url, " Failed to publish a message")
+					}
 					this.Channel.Ack(eachMessage.DeliveryTag, false)
 				}
 			} else {

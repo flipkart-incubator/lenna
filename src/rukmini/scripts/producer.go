@@ -9,7 +9,6 @@ import (
 	"strconv"
 )
 
-const host string = "sp-cms-service.nm.flipkart.com:26701"
 const amqpConnection string = "amqp://guest:guest@mobile-flipcast-queue1.nm.flipkart.com:5672/"
 const queueName string = "rukmini_jobs"
 const concurrency int = 5
@@ -18,6 +17,7 @@ const mqReadBulkSize int = 1
 
 func main() {
 	batchSize := flag.Int("batchSize", 10, "batch size to read from CMS")
+	host := flag.String("cmsHost", "sp-cms-search-service.vip.nm.flipkart.com:26701", "CMS Host end point <host>:<port>")
 	vertical := flag.String("vertical", "", "vertical for which images are to be populated")
 	versionArg := flag.String("versions", "", "version for which images are to be populated. Versions should be comma separated")
 
@@ -42,7 +42,7 @@ func main() {
 		}
 	}
 
-	spCMSConfig := client.SpCmsConfig{Host : host}
+	spCMSConfig := client.SpCmsConfig{Host : *host}
 
 	rabbitMQConfig := client.RabbitMQConfig{ AmqpConnection: amqpConnection, QueueName :queueName}
 	amqpClientWrite, err := rabbitMQConfig.CreateChannel(mqReadBulkSize, concurrency)
