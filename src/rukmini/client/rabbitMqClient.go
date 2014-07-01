@@ -10,6 +10,7 @@ type RabbitMQConfig struct {
 	AmqpConnection string
 	QueueName      string
 	SideLineQueueName      string
+	BatchSize      int
 }
 
 type RabbitMQClient struct {
@@ -18,7 +19,7 @@ type RabbitMQClient struct {
 	Connection *amqp.Connection
 }
 
-func (this *RabbitMQConfig) CreateChannel(bulkSize int, concurrency int) (*RabbitMQClient, error) {
+func (this *RabbitMQConfig) CreateChannel() (*RabbitMQClient, error) {
 	//Create connection with rabbitMQ
 	conn, err := amqp.Dial(this.AmqpConnection)
 	if err != nil {
@@ -73,8 +74,8 @@ func constructRukminiUrl(url string) string {
 
 func (this *RabbitMQClient) Read(callback func(string) bool) bool {
 
-	resp, err := this.Channel.Consume(this.Config.QueueName, "", false, false, false, false, nil)
-//	this.Channel.Qos(10, 10 * 2, false)
+	resp, err := this.Channel.Consume(this.Config.QueueName, "", false, false, false, true, nil)
+	this.Channel.Qos(this.Config.BatchSize, 0, false)
 
 	if err != nil {
 		fmt.Println(err, "Failure|amqpConnection|Unable to consume from RabbitMQ")

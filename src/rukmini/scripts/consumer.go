@@ -19,9 +19,9 @@ func main() {
 
 	flag.Parse()
 
-	rabbitMQConfig := client.RabbitMQConfig{ AmqpConnection: amqpConnection, QueueName: queueName, SideLineQueueName: queueNameSideline}
+	rabbitMQConfig := client.RabbitMQConfig{ AmqpConnection: amqpConnection, QueueName: queueName, SideLineQueueName: queueNameSideline, BatchSize: *batchSize}
 	rukminiConfig := client.RukminiConfig{ Host: *host }
-	amqpClientRead, err := rabbitMQConfig.CreateChannel(*batchSize, concurrency)
+	amqpClientRead, err := rabbitMQConfig.CreateChannel()
 
 
 	if err != nil {
