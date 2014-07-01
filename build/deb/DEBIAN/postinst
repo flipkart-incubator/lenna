@@ -43,6 +43,9 @@ if [ "$1" == "configure" ] ; then
     go build
     echo "Compilation complete!"
 
+    if [ ! -d "/usr/${PACKAGE}/bin" ]; then
+        mkdir -p /usr/${PACKAGE}/bin
+    fi
     #Compile scripts
     echo "Compiling scripts"
     cd /var/lib/rukmini/src/rukmini/scripts/
