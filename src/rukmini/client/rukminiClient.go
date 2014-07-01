@@ -23,10 +23,11 @@ func (this *RukminiConfig) WarmUpCache(url string) bool {
 //		fmt.Println(newUrl)
 //		go func(idx int) {
 			resp, err := http.Get(newUrl)
-			fmt.Println("INFO|RukminiWarmUp|URL=", newUrl, " Status", resp.StatusCode)
 			if err != nil || (resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNotModified) {
+				fmt.Println("INFO|RukminiWarmUp|URL=", newUrl, " Status ", false)
 				done = done & 0
 			} else {
+				fmt.Println("INFO|RukminiWarmUp|URL=", newUrl, " Status ", true)
 				done = done & 1
 			}
 //		}(idx)
