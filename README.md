@@ -1,7 +1,21 @@
 # Rukmini - Image Delivery Service
 
+## Supported Endpoints
+* Health check: `GET /status`
+* OOR: `POST /oor`
+* BIR: `POST /bit`
+* Resize: `GET /{source prefix}/{width}/{height}/{relative path from source}?[q={quality}]`
 
-## Dependencies
+## Example Resize
+
+`/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg`
+
+## Production Instance
+* Internal VIP: `rukmini.flixcart.vip.nm.flipkart.com`
+* CDN Origin CName: `rukmini.flixcart.com`
+* CDN Edge CNames: `rukmini1.flixcart.com, rukmini2.flixcart.com, rukmini3.flixcart.com`
+
+## Runtime Dependencies
 * [go 1.3](http://golang.org/)
 * [beego](http://beego.me/)
 * [libmagickwand5](https://packages.debian.org/wheezy/libmagickwand5)
