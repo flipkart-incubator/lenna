@@ -119,6 +119,11 @@ func (this *ResizeController) Get() {
 		errMessage := fmt.Sprintf("Image Quality Setting Error: %s", err)
 		beego.Error(errMessage)
 	}
+	err = mw.SetImageInterlaceScheme(imagick.INTERLACE_PLANE)
+	if err != nil {
+		errMessage := fmt.Sprintf("Progressive Rendering Error: %s", err)
+		beego.Error(errMessage)
+	}
 	mw.SetImageFormat("jpeg")
 	err = mw.WriteImage(fileName);
 	if err != nil {
