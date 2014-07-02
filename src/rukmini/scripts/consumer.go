@@ -10,17 +10,18 @@ import (
 
 const amqpConnection string = "amqp://guest:guest@mobile-flipcast-queue1.nm.flipkart.com:5672/"
 const queueName string = "rukmini_jobs"
+const queueNameSideline string = "rukmini_jobs_sideline"
 const concurrency int = 1
 
 func main() {
-	host := flag.String("RukminiHost", "rukmini.flixcart.com", "rukmini host which is to be called")
-	batchSize := flag.Int("batchSize", 1000, "batch size to read from Queue")
+	batchSize := flag.Int("batchSize", 1, "batch size to read from Queue")
+	host := flag.String("RukminiHost", "rukmini.flixcart.vip.nm.flipkart.com", "Rukmini Host")
 
 	flag.Parse()
 
-	rabbitMQConfig := client.RabbitMQConfig{ AmqpConnection: amqpConnection, QueueName :queueName}
-	rukminiConfig := client.RukminiConfig{ Host : *host}
-	amqpClientRead, err := rabbitMQConfig.CreateChannel(*batchSize, concurrency)
+	rabbitMQConfig := client.RabbitMQConfig{ AmqpConnection: amqpConnection, QueueName: queueName, SideLineQueueName: queueNameSideline, BatchSize: *batchSize}
+	rukminiConfig := client.RukminiConfig{ Host: *host }
+	amqpClientRead, err := rabbitMQConfig.CreateChannel()
 
 
 	if err != nil {

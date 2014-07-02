@@ -43,20 +43,25 @@ if [ "$1" == "configure" ] ; then
     go build
     echo "Compilation complete!"
 
+    if [ ! -d "/usr/${PACKAGE}/bin" ]; then
+        mkdir -p /usr/${PACKAGE}/bin
+    fi
     #Compile scripts
     echo "Compiling scripts"
     cd /var/lib/rukmini/src/rukmini/scripts/
     echo "Compiling consumer script"
     go build consumer.go
+    cp /var/lib/rukmini/src/rukmini/scripts/consumer /usr/rukmini/bin
     echo "Compiled consumer"
     echo "Compiling producer script"
     go build producer.go
+    cp /var/lib/rukmini/src/rukmini/scripts/producer /usr/rukmini/bin
     echo "Compiled producer"
     echo "Completed scripts!!!"
 
     chmod -R a+rwx /var/lib/${PACKAGE}/src/${PACKAGE}/${PACKAGE}
-    chmod 777 /etc/init.d/producer
-    chmod 777 /etc/init.d/consumer
+    chmod 777 /usr/${PACKAGE}/bin/producer
+    chmod 777 /usr/${PACKAGE}/bin/consumer
 
     sudo chkconfig --level 2345  ${PACKAGE} on
     sudo /etc/init.d/${PACKAGE} stop || true
