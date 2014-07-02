@@ -7,11 +7,3 @@
 [submodule "src/github.com/satori/uuid"]
 	path = src/github.com/satori/uuid
 	url = https://github.com/satori/uuid
-[submodule "src/github.com/lazywei/go-opencv"]
-	path = src/github.com/lazywei/go-opencv
-	url = https://github.com/lazywei/go-opencv
-[submodule "src/github.com/streadway/amqp"]
-	path = src/github.com/streadway/amqp
-	url = https://github.com/streadway/amqp
-
-
