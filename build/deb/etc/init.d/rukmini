@@ -15,8 +15,6 @@
 # Author:  Phaneesh Nagaraja <phaneesh.nagaraja[AT]flipkart.com>
 
 #Java Executable
-JAVA=`which java`
-
 PACKAGE=rukmini
 PACKAGE_USER=rukmini
 PACKAGE_GROUP=rukmini
