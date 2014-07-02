@@ -82,10 +82,11 @@ func (this *ResizeController) Get() {
 	}
 	var original_width = mw.GetImageWidth()
 	var original_height = mw.GetImageHeight()
-//	if float64(original_height) < height || float64(original_width) < width {
-//		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-//		return
-//	}
+	beego.Info(fmt.Sprintf("Image Size: %d X %d -> %d X %d", original_height,original_width, height, width))
+	if float64(original_height) <= height || float64(original_width) <= width {
+		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+		return
+	}
 	//Preserve aspect ratio
 	if uint(width) > original_width {
 		ratio := float64(original_width / uint(width))
