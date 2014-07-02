@@ -82,7 +82,7 @@ func (this *ResizeController) Get() {
 	}
 	var original_width = mw.GetImageWidth()
 	var original_height = mw.GetImageHeight()
-	beego.Info(fmt.Sprintf("Image Size: %d X %d -> %d X %d", original_height,original_width, height, width))
+	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_height,original_width, height, width))
 	if float64(original_height) <= height || float64(original_width) <= width {
 		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 		return
