@@ -79,7 +79,6 @@ func (this *ResizeController) Get() {
 	}
 	var original_width = mw.GetImageWidth()
 	var original_height = mw.GetImageHeight()
-	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_height,original_width, height, width))
 	if float64(original_height) <= height || float64(original_width) <= width {
 		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 		mw.Destroy()
@@ -87,16 +86,33 @@ func (this *ResizeController) Get() {
 		return
 	}
 	//Preserve aspect ratio
-	if uint(width) > original_width {
-		ratio := float64(original_width / uint(width))
-		width = float64(width * ratio)
-		height = float64(height * ratio)
+
+	width_ratio := width / float64(original_width)
+	height_ratio := height / float64(original_height)
+//	fmt.Println(fmt.Sprintf("Width Ratio: %4f | Height Ratio", width_ratio, height_ratio))
+	if( width_ratio < height_ratio ) {
+		width = float64(original_width) * width_ratio
+		height = float64(original_height) * width_ratio
+	} else {
+		width = float64(original_width) * height_ratio
+		height = float64(original_height) * height_ratio
 	}
-	if uint(height) > original_height {
-		ratio := float64(original_height / uint(height))
-		width = float64(width * ratio)
-		height = float64(height * ratio)
-	}
+//	if uint(width) > original_width {
+//		ratio := float64(original_width / uint(width))
+//		width = float64(width * ratio)
+//		height = float64(height * ratio)
+//	} else {
+//		if uint(height) > original_height {
+//			ratio := width / float64(original_width)
+//			fmt.Println(fmt.Sprintf("Ratio: %4f", ratio))
+//			width = float64(original_width) * ratio
+//			height = float64(original_height) * ratio
+//		} else {
+//			ratio := float64(uint(he) / original_width)
+//			width = float64(width * ratio)
+//			height = float64(height * ratio)
+//		}
+//	}
 	if width < 1 {
 		width = 1
 	}
@@ -106,6 +122,7 @@ func (this *ResizeController) Get() {
 	if quality < 1 {
 		quality = 90
 	}
+	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_width,original_height, width, height))
 	err = mw.ResizeImage(uint(width), uint(height), imagick.FILTER_LANCZOS, 0.8)
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
