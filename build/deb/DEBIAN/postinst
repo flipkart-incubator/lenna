@@ -45,8 +45,8 @@ if [ "$1" == "configure" ] ; then
     chmod -R a+rwx /var/lib/${PACKAGE}/src/${PACKAGE}/${PACKAGE}
 
     sudo supervisorctl reload
-    sudo supervisorctl stop
+    sudo supervisorctl stop rukmini
     sleep 5
-    sudo supervisorctl start
+    sudo supervisorctl start rukmini
 fi
 exit 0
