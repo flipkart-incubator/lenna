@@ -65,18 +65,16 @@ func (this *ResizeController) Get() {
 		return
 	}
 	imagick.Initialize()
-	// Schedule cleanup
-	defer imagick.Terminate()
 	//Create new magickwand canvas
 	mw := imagick.NewMagickWand()
-	// Schedule cleanup
-	defer mw.Destroy()
 	//Read the image into memory
 	err = mw.ReadImage(fileName)
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Read Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
+		mw.Destroy()
+		imagick.Terminate()
 		return
 	}
 	var original_width = mw.GetImageWidth()
@@ -84,6 +82,8 @@ func (this *ResizeController) Get() {
 	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_height,original_width, height, width))
 	if float64(original_height) <= height || float64(original_width) <= width {
 		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+		mw.Destroy()
+		imagick.Terminate()
 		return
 	}
 	//Preserve aspect ratio
@@ -111,6 +111,9 @@ func (this *ResizeController) Get() {
 		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
+		mw.Destroy()
+		imagick.Terminate()
+		os.Remove(fileName)
 		return
 	}
 	err = mw.SetImageCompressionQuality((uint)(quality))
@@ -129,8 +132,13 @@ func (this *ResizeController) Get() {
 		errMessage := fmt.Sprintf("Image Write Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
+		mw.Destroy()
+		imagick.Terminate()
+		os.Remove(fileName)
 		return
 	}
+	mw.Destroy()
+	imagick.Terminate()
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 	defer os.Remove(fileName)
 }
