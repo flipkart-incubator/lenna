@@ -56,15 +56,14 @@ func (this *ResizeController) Get() {
 		this.Ctx.Abort(response.StatusCode, response.Status)
 		return
 	}
-	defer response.Body.Close()
 	imageData, err := ioutil.ReadAll(response.Body)
+	response.Body.Close()
 	if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 		errMessage := fmt.Sprintf("%s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
 		return
 	}
-	defer os.Remove(fileName)
 	imagick.Initialize()
 	// Schedule cleanup
 	defer imagick.Terminate()
@@ -133,4 +132,6 @@ func (this *ResizeController) Get() {
 		return
 	}
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+	defer os.Remove(fileName)
 }
+
