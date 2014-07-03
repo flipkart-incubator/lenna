@@ -29,7 +29,6 @@ if [ "$1" == "configure" ] ; then
  	    mkdir -p /var/log/${PACKAGE}
  	    touch /var/log/${PACKAGE}/${PACKAGE}.log
     fi
-
     chmod -R a+rwx /var/log/${PACKAGE}
     chown -R ${PF_UID}:${PF_GID} /var/log/${PACKAGE}
     chmod a+x /etc/init.d/${PACKAGE}
@@ -45,12 +44,9 @@ if [ "$1" == "configure" ] ; then
 
     chmod -R a+rwx /var/lib/${PACKAGE}/src/${PACKAGE}/${PACKAGE}
 
-    sudo chkconfig --level 2345  ${PACKAGE} on
-    sudo /etc/init.d/${PACKAGE} stop || true
+    sudo supervisorctl reload
+    sudo supervisorctl stop
     sleep 5
-    if [ -x "/etc/init.d/${PACKAGE}" ]; then
-	    sudo /etc/init.d/${PACKAGE} start || true
-	    sleep 5
-    fi
+    sudo supervisorctl start
 fi
 exit 0
