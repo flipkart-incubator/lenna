@@ -140,6 +140,6 @@ func (this *ResizeController) Get() {
 	mw.Destroy()
 	imagick.Terminate()
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-	defer os.Remove(fileName)
+	os.Remove(fileName)
 }
 
