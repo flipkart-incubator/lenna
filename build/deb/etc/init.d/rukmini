@@ -51,26 +51,21 @@ ACTION="$1"
 
 start()
 {
-    start-stop-daemon --start --background --oknodo \
-                --umask 000 --user ${PACKAGE_USER} --chuid ${PACKAGE_USER} \
-                --make-pidfile --pidfile ${RUKMINI_PID_FILE} \
-                --exec ${RUKMINI_EXE} 2>&1 > /dev/null
+    sudo -u ${PACKAGE_USER} supervisorctl start ${PACKAGE}
     return $?
 }
 
 stop()
 {
     oor
-    start-stop-daemon --stop --signal 9 \
-                        --quiet --pidfile ${RUKMINI_PID_FILE} \
-                        --retry 300 \
-                        --user ${PACKAGE_USER} \
-                        --exec ${RUKMINI_EXE} 2>&1 > /dev/null
+    sudo -u ${PACKAGE_USER} supervisorctl stop ${PACKAGE}
+    return $?
     return $?
 }
 
 terminate()
 {
+    stop
     if [ -f "${RUKMINI_PID_FILE}" ] ; then
         sudo -u ${PACKAGE_USER} kill -9 $(cat ${RUKMINI_PID_FILE}) || true
         sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
@@ -93,29 +88,9 @@ usage()
     exit 0
 }
 
-fix()
-{
-    IS_PROCESS_RUNNING=`ps -ef | grep rukmini | wc -l`
-    if [ "${IS_PROCESS_RUNNING}" = 2 ]
-    then
-        NEW_PID_PROCESS=`ps -ef | grep rukmini | awk -F' ' '{print $2}' | tail -n 1`
-        sudo -u ${PACKAGE_USER} echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
-        sudo -u ${PACKAGE_USER} chmod a+rwx ${RUKMINI_PID_FILE}
-        echo "PID file has been updated!"
-    else
-      sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
-    fi
-}
-
 status()
 {
-    cd "${RUKMINI_BASE_DIR}"
-    if [ -f "${RUKMINI_PID_FILE}" ] ; then
-        echo "${PACKAGE} is running with pid : " $(cat ${RUKMINI_PID_FILE})
-    else
-        echo "Service is not running according to pid file! End is near.. repent now!"
-        fix
-    fi
+    sudo -u ${PACKAGE_USER} supervisorctl start ${PACKAGE}
 }
 
 oor() {
