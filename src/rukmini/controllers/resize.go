@@ -97,7 +97,6 @@ func (this *ResizeController) Get() {
 		return
 	}
 	originalImageFile1.Close()
-	os.Remove(fileName)
 	var original_width = imgc.Width
 	var original_height = imgc.Height
 	if float64(original_height) <= height || float64(original_width) <= width {
@@ -107,6 +106,7 @@ func (this *ResizeController) Get() {
 //		imagick.Terminate()
 		return
 	}
+	os.Remove(fileName)
 	//Preserve aspect ratio
 	width_ratio := width / float64(original_width)
 	height_ratio := height / float64(original_height)
