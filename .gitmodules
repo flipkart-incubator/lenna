@@ -7,4 +7,7 @@
 [submodule "src/github.com/satori/uuid"]
 	path = src/github.com/satori/uuid
 	url = https://github.com/satori/uuid
+[submodule "github.com/nfnt/resize"]
+	path = src/github.com/nfnt/resize
+	url = https://github.com/nfnt/resize
 

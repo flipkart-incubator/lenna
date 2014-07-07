@@ -8,7 +8,10 @@ import (
 	"strconv"
 	"github.com/astaxie/beego"
 	"github.com/satori/uuid"
-	"github.com/gographics/imagick/imagick"
+//	"github.com/gographics/imagick/imagick"
+	"github.com/nfnt/resize"
+	"image"
+	"image/jpeg"
 )
 
 type ResizeController struct {
@@ -64,32 +67,60 @@ func (this *ResizeController) Get() {
 		this.Ctx.Abort(500, errMessage)
 		return
 	}
-	imagick.Initialize()
-	//Create new magickwand canvas
-	mw := imagick.NewMagickWand()
-	//Read the image into memory
-	err = mw.ReadImage(fileName)
+	// open "test.jpg"
+	originalImageFile, err := os.Open(fileName)
 	if err != nil {
-		errMessage := fmt.Sprintf("Image Read Error: %s", err)
+		errMessage := fmt.Sprintf("Image Open Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
-		mw.Destroy()
-		imagick.Terminate()
 		return
 	}
-	var original_width = mw.GetImageWidth()
-	var original_height = mw.GetImageHeight()
+	// decode jpeg into image.Image
+	originalImg, err := jpeg.Decode(originalImageFile)
+	if err != nil {
+		errMessage := fmt.Sprintf("Image Open Error: %s", err)
+		beego.Error(errMessage)
+		this.Ctx.Abort(500, errMessage)
+		originalImageFile.Close()
+		os.Remove(fileName)
+		return
+	}
+	imgc, _, err := image.DecodeConfig(originalImageFile)
+	if err != nil {
+		errMessage := fmt.Sprintf("Image Open Error: %s", err)
+		beego.Error(errMessage)
+		this.Ctx.Abort(500, errMessage)
+		originalImageFile.Close()
+		os.Remove(fileName)
+		return
+	}
+	originalImageFile.Close()
+	os.Remove(fileName)
+//	imagick.Initialize()
+//	//Create new magickwand canvas
+//	mw := imagick.NewMagickWand()
+//	//Read the image into memory
+//	err = mw.ReadImage(fileName)
+//	if err != nil {
+//		errMessage := fmt.Sprintf("Image Read Error: %s", err)
+//		beego.Error(errMessage)
+//		this.Ctx.Abort(500, errMessage)
+//		mw.Destroy()
+//		imagick.Terminate()
+//		return
+//	}
+	var original_width = imgc.Width
+	var original_height = imgc.Height
 	if float64(original_height) <= height || float64(original_width) <= width {
 		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-		mw.Destroy()
-		imagick.Terminate()
+		os.Remove(fileName)
+//		mw.Destroy()
+//		imagick.Terminate()
 		return
 	}
 	//Preserve aspect ratio
-
 	width_ratio := width / float64(original_width)
 	height_ratio := height / float64(original_height)
-//	fmt.Println(fmt.Sprintf("Width Ratio: %4f | Height Ratio", width_ratio, height_ratio))
 	if( width_ratio < height_ratio ) {
 		width = float64(original_width) * width_ratio
 		height = float64(original_height) * width_ratio
@@ -97,22 +128,6 @@ func (this *ResizeController) Get() {
 		width = float64(original_width) * height_ratio
 		height = float64(original_height) * height_ratio
 	}
-//	if uint(width) > original_width {
-//		ratio := float64(original_width / uint(width))
-//		width = float64(width * ratio)
-//		height = float64(height * ratio)
-//	} else {
-//		if uint(height) > original_height {
-//			ratio := width / float64(original_width)
-//			fmt.Println(fmt.Sprintf("Ratio: %4f", ratio))
-//			width = float64(original_width) * ratio
-//			height = float64(original_height) * ratio
-//		} else {
-//			ratio := float64(uint(he) / original_width)
-//			width = float64(width * ratio)
-//			height = float64(height * ratio)
-//		}
-//	}
 	if width < 1 {
 		width = 1
 	}
@@ -123,39 +138,17 @@ func (this *ResizeController) Get() {
 		quality = 90
 	}
 	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_width,original_height, width, height))
-	err = mw.ResizeImage(uint(width), uint(height), imagick.FILTER_LANCZOS, 0.8)
+	resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
+	resizeImageFile, err := os.Create(fileName)
 	if err != nil {
-		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
+		errMessage := fmt.Sprintf("Image Open Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
-		mw.Destroy()
-		imagick.Terminate()
 		os.Remove(fileName)
 		return
 	}
-	err = mw.SetImageCompressionQuality((uint)(quality))
-	if err != nil {
-		errMessage := fmt.Sprintf("Image Quality Setting Error: %s", err)
-		beego.Error(errMessage)
-	}
-	err = mw.SetImageInterlaceScheme(imagick.INTERLACE_PLANE)
-	if err != nil {
-		errMessage := fmt.Sprintf("Progressive Rendering Error: %s", err)
-		beego.Error(errMessage)
-	}
-	mw.SetImageFormat("jpeg")
-	err = mw.WriteImage(fileName);
-	if err != nil {
-		errMessage := fmt.Sprintf("Image Write Error: %s", err)
-		beego.Error(errMessage)
-		this.Ctx.Abort(500, errMessage)
-		mw.Destroy()
-		imagick.Terminate()
-		os.Remove(fileName)
-		return
-	}
-	mw.Destroy()
-	imagick.Terminate()
+	jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: quality})
+	resizeImageFile.Close()
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 	os.Remove(fileName)
 }
