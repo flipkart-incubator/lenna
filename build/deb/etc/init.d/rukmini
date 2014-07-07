@@ -15,6 +15,8 @@
 # Author:  Phaneesh Nagaraja <phaneesh.nagaraja[AT]flipkart.com>
 
 #Java Executable
+JAVA=`which java`
+
 PACKAGE=rukmini
 PACKAGE_USER=rukmini
 PACKAGE_GROUP=rukmini
@@ -51,21 +53,26 @@ ACTION="$1"
 
 start()
 {
-    sudo -u ${PACKAGE_USER} supervisorctl start ${PACKAGE}
+    start-stop-daemon --start --background --oknodo \
+                --umask 000 --user ${PACKAGE_USER} --chuid ${PACKAGE_USER} \
+                --make-pidfile --pidfile ${RUKMINI_PID_FILE} \
+                --exec ${RUKMINI_EXE} 2>&1 > /dev/null
     return $?
 }
 
 stop()
 {
     oor
-    sudo -u ${PACKAGE_USER} supervisorctl stop ${PACKAGE}
-    return $?
+    start-stop-daemon --stop --signal 9 \
+                        --quiet --pidfile ${RUKMINI_PID_FILE} \
+                        --retry 300 \
+                        --user ${PACKAGE_USER} \
+                        --exec ${RUKMINI_EXE} 2>&1 > /dev/null
     return $?
 }
 
 terminate()
 {
-    stop
     if [ -f "${RUKMINI_PID_FILE}" ] ; then
         sudo -u ${PACKAGE_USER} kill -9 $(cat ${RUKMINI_PID_FILE}) || true
         sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
