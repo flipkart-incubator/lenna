@@ -44,9 +44,12 @@ if [ "$1" == "configure" ] ; then
 
     chmod -R a+rwx /var/lib/${PACKAGE}/src/${PACKAGE}/${PACKAGE}
 
-    sudo supervisorctl reload
-    sudo supervisorctl stop rukmini
+    sudo chkconfig --level 2345  ${PACKAGE} on
+    sudo /etc/init.d/${PACKAGE} stop || true
     sleep 5
-    sudo supervisorctl start rukmini
+    if [ -x "/etc/init.d/${PACKAGE}" ]; then
+	    sudo /etc/init.d/${PACKAGE} start || true
+	    sleep 5
+    fi
 fi
 exit 0

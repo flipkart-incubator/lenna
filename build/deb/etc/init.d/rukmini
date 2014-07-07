@@ -88,9 +88,29 @@ usage()
     exit 0
 }
 
+fix()
+{
+    IS_PROCESS_RUNNING=`ps -ef | grep rukmini | wc -l`
+    if [ "${IS_PROCESS_RUNNING}" = 2 ]
+    then
+        NEW_PID_PROCESS=`ps -ef | grep rukmini | awk -F' ' '{print $2}' | tail -n 1`
+        sudo -u ${PACKAGE_USER} echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
+        sudo -u ${PACKAGE_USER} chmod a+rwx ${RUKMINI_PID_FILE}
+        echo "PID file has been updated!"
+    else
+      sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
+    fi
+}
+
 status()
 {
-    sudo -u ${PACKAGE_USER} supervisorctl start ${PACKAGE}
+    cd "${RUKMINI_BASE_DIR}"
+    if [ -f "${RUKMINI_PID_FILE}" ] ; then
+        echo "${PACKAGE} is running with pid : " $(cat ${RUKMINI_PID_FILE})
+    else
+        echo "Service is not running according to pid file! End is near.. repent now!"
+        fix
+    fi
 }
 
 oor() {
