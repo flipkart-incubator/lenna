@@ -78,7 +78,7 @@ func (this *ResizeController) Get() {
 	// decode jpeg into image.Image
 	originalImg, err := jpeg.Decode(originalImageFile)
 	if err != nil {
-		errMessage := fmt.Sprintf("Image Open Error: %s", err)
+		errMessage := fmt.Sprintf("Image Decode Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
 		originalImageFile.Close()
@@ -87,7 +87,7 @@ func (this *ResizeController) Get() {
 	}
 	imgc, _, err := image.DecodeConfig(originalImageFile)
 	if err != nil {
-		errMessage := fmt.Sprintf("Image Open Error: %s", err)
+		errMessage := fmt.Sprintf("Image Get Decode Config Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
 		originalImageFile.Close()
@@ -96,19 +96,6 @@ func (this *ResizeController) Get() {
 	}
 	originalImageFile.Close()
 	os.Remove(fileName)
-//	imagick.Initialize()
-//	//Create new magickwand canvas
-//	mw := imagick.NewMagickWand()
-//	//Read the image into memory
-//	err = mw.ReadImage(fileName)
-//	if err != nil {
-//		errMessage := fmt.Sprintf("Image Read Error: %s", err)
-//		beego.Error(errMessage)
-//		this.Ctx.Abort(500, errMessage)
-//		mw.Destroy()
-//		imagick.Terminate()
-//		return
-//	}
 	var original_width = imgc.Width
 	var original_height = imgc.Height
 	if float64(original_height) <= height || float64(original_width) <= width {
