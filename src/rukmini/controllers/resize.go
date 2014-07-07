@@ -85,16 +85,18 @@ func (this *ResizeController) Get() {
 		os.Remove(fileName)
 		return
 	}
-	imgc, _, err := image.DecodeConfig(originalImageFile)
+	originalImageFile.Close()
+	originalImageFile1, err := os.Open(fileName)
+	imgc, _, err := image.DecodeConfig(originalImageFile1)
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Get Decode Config Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
-		originalImageFile.Close()
+		originalImageFile1.Close()
 		os.Remove(fileName)
 		return
 	}
-	originalImageFile.Close()
+	originalImageFile1.Close()
 	os.Remove(fileName)
 	var original_width = imgc.Width
 	var original_height = imgc.Height
