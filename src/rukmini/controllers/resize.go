@@ -99,11 +99,10 @@ func (this *ResizeController) Get() {
 	originalImageFile1.Close()
 	var original_width = imgc.Width
 	var original_height = imgc.Height
-	if float64(original_height) <= height || float64(original_width) <= width {
+	if float64(original_height) <= height && float64(original_width) <= width {
+		beego.Info(fmt.Sprintf("Serving Original Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_width,original_height, width, height))
 		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 		os.Remove(fileName)
-//		mw.Destroy()
-//		imagick.Terminate()
 		return
 	}
 	os.Remove(fileName)
@@ -126,7 +125,7 @@ func (this *ResizeController) Get() {
 	if quality < 1 {
 		quality = 90
 	}
-	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_width,original_height, width, height))
+	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio))
 	resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
 	resizeImageFile, err := os.Create(fileName)
 	if err != nil {
