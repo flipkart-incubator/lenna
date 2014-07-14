@@ -14,8 +14,8 @@
 
 # Author:  Phaneesh Nagaraja <phaneesh.nagaraja[AT]flipkart.com>
 
-#Java Executable
-JAVA=`which java`
+# Set umask for all files created by this process
+umask u=rwx,g=rwx,o=rwx
 
 PACKAGE=rukmini
 PACKAGE_USER=rukmini
