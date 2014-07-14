@@ -63,6 +63,7 @@ start()
 stop()
 {
     oor
+    cleartemp
     start-stop-daemon --stop --signal 9 \
                         --quiet --pidfile ${RUKMINI_PID_FILE} \
                         --retry 300 \
@@ -137,6 +138,18 @@ inr() {
     echo "Done"
 }
 
+cleartemp() {
+    echo "Clearing temp..."
+    API_HOST=`hostname`
+    ENDPOINT="http://"${API_HOST}":8081/oor"
+    curl -XPOST ${ENDPOINT} || true
+    sleep 10
+    cd /tmp
+    find . -type f -print -delete
+    ENDPOINT="http://"${API_HOST}":8081/inr"
+    echo "Done"
+}
+
 case "${ACTION}" in
     start)
         echo "Starting image delivery service...."
@@ -168,6 +181,9 @@ case "${ACTION}" in
         ;;
     inr)
         inr
+        ;;
+    cleartemp)
+        cleartemp
         ;;
     *)
        usage
