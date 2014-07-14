@@ -140,14 +140,9 @@ inr() {
 
 cleartemp() {
     echo "Clearing temp..."
-    API_HOST=`hostname`
-    ENDPOINT="http://"${API_HOST}":8081/oor"
-    curl -XPOST ${ENDPOINT} || true
-    sleep 10
     cd /tmp
-    find . -type f -print -delete
-    ENDPOINT="http://"${API_HOST}":8081/inr"
-    echo "Done"
+    find . -mmin +5 -type f -print -delete
+    echo "Cleared temp directory!"
 }
 
 case "${ACTION}" in
