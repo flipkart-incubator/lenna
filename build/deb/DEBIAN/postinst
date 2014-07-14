@@ -1,4 +1,4 @@
-#! /bin/bash -ex
+#! /bin/bash -e
 #Package Configuration
 PACKAGE=rukmini
 PACKAGE_USER=rukmini
@@ -38,7 +38,6 @@ if [ "$1" == "configure" ] ; then
     echo "Adding cron job to clear temp..."
     crontab -r -u ${PACKAGE_USER} || true
     { echo '*/10 * * * * /etc/init.d/rukmini cleartemp'; } | crontab -u ${PACKAGE_USER} - || true
-#    echo "*/10 * * * * /etc/init.d/rukmini cleartemp" | crontab -u ${PACKAGE_USER} -
     crontab -u ${PACKAGE_USER} -l || true
     # Compile the binary now (double meh.. tripple meh)
     export PATH=/usr/local/go/bin:$PATH
