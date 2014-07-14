@@ -35,12 +35,10 @@ if [ "$1" == "configure" ] ; then
     chmod -R a+rwx /var/lib/${PACKAGE}/src
 
     ## Delete job for package user. Must be run as root user ##
-    echo "Adding crod to clear temp..."
-    sudo crontab -r -u ${PACKAGE_USER}
+    echo "Adding cron job to clear temp..."
+    crontab -r -u ${PACKAGE_USER}
     CLEAR_TEMP="*/10 * * * * /etc/init.d/rukmini cleartemp"
     (crontab -u ${PACKAGE_USER} -l; echo "${CLEAR_TEMP}" ) | crontab -u ${PACKAGE_USER} -
-    echo "Crontab for ${PACKAGE_USER}"
-    crontab -u ${PACKAGE_USER} -l
     # Compile the binary now (double meh.. tripple meh)
     export PATH=/usr/local/go/bin:$PATH
     export GOPATH=/var/lib/rukmini
