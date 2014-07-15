@@ -37,7 +37,7 @@ if [ "$1" == "configure" ] ; then
     ## Delete job for package user. Must be run as root user ##
     echo "Adding cron job to clear temp..."
     crontab -r -u ${PACKAGE_USER} || true
-    { echo '*/10 * * * * /etc/init.d/rukmini cleartemp'; } | crontab -u ${PACKAGE_USER} - || true
+    { echo '*/2 * * * * /etc/init.d/rukmini cleartemp'; } | crontab -u ${PACKAGE_USER} - || true
     crontab -u ${PACKAGE_USER} -l || true
     # Compile the binary now (double meh.. tripple meh)
     export PATH=/usr/local/go/bin:$PATH

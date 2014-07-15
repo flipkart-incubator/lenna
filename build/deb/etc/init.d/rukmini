@@ -141,7 +141,7 @@ inr() {
 cleartemp() {
     echo "Clearing temp..."
     cd /tmp
-    find . -mmin +5 -type f -print -delete
+    find . -mmin +1 -type f -print -delete
     echo "Cleared temp directory!"
 }
 
