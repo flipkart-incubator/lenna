@@ -8,10 +8,9 @@ import (
 	"strconv"
 	"github.com/astaxie/beego"
 	"github.com/satori/uuid"
-//	"github.com/gographics/imagick/imagick"
 	"github.com/nfnt/resize"
 	"image"
-	"image/jpeg"
+	"github.com/nl5887/golang-image/jpeg"
 )
 
 type ResizeController struct {
