@@ -30,7 +30,6 @@ if [ "$1" == "configure" ] ; then
  	    touch /var/log/${PACKAGE}/${PACKAGE}.log
     fi
     chmod -R a+rwx /var/log/${PACKAGE}
-    chown -R ${PF_UID}:${PF_GID} /var/log/${PACKAGE}
     chmod a+x /etc/init.d/${PACKAGE}
     chmod -R a+rwx /var/lib/${PACKAGE}/src
 
