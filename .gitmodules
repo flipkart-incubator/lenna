@@ -7,7 +7,7 @@
 [submodule "src/github.com/satori/uuid"]
 	path = src/github.com/satori/uuid
 	url = https://github.com/satori/uuid
-[submodule "src/github.com/nl5887/golang-image"]
+[submodule "src/github.com/nl5887/golang-image/jpeg"]
 	path = src/github.com/nl5887/golang-image
 	url = https://github.com/nl5887/golang-image
 [submodule "src/github.com/nfnt/resize"]
