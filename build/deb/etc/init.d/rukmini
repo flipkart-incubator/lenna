@@ -15,7 +15,7 @@
 # Author:  Phaneesh Nagaraja <phaneesh.nagaraja[AT]flipkart.com>
 
 # Set umask for all files created by this process
-umask u=rwx,g=rwx,o=rwx
+umask 0777
 
 PACKAGE=rukmini
 PACKAGE_USER=rukmini

@@ -25,13 +25,14 @@ if [ "$1" == "configure" ] ; then
     chown -R ${PF_UID}:${PF_GID} /var/lib/${PACKAGE}
     if [ -d "/var/log/${PACKAGE}" ]; then
  	    touch /var/log/${PACKAGE}/${PACKAGE}.log
+ 	    chmod -R 777 /var/log/${PACKAGE}/${PACKAGE}.log
  	else
  	    mkdir -p /var/log/${PACKAGE}
  	    touch /var/log/${PACKAGE}/${PACKAGE}.log
+ 	    chmod -R 777 /var/log/${PACKAGE}/${PACKAGE}.log
     fi
-    chmod -R a+rwx /var/log/${PACKAGE}
-    chmod a+x /etc/init.d/${PACKAGE}
-    chmod -R a+rwx /var/lib/${PACKAGE}/src
+    chmod 777 /etc/init.d/${PACKAGE}
+    chmod -R 777 /var/lib/${PACKAGE}/src
 
     ## Delete job for package user. Must be run as root user ##
     echo "Adding cron job to clear temp..."
