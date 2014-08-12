@@ -86,69 +86,66 @@ func (this *ResizeController) Get() {
 	originalImg, _, err := image.Decode(originalImageFile)
 	if err != nil {
 		resizeUsingImageMagick(this, fileName, width, height, quality, downloadUrl)
-	}
-	originalImageFile.Close()
-	originalImageFile1, err := os.Open(fileName)
-	imgc, _, err := image.DecodeConfig(originalImageFile1)
-	if err != nil {
-		errMessage := fmt.Sprintf("Image Get Decode Config Error: %s", err)
-		beego.Error(errMessage)
-		this.Ctx.Abort(500, errMessage)
-		originalImageFile1.Close()
-		os.Remove(fileName)
-		return
-	}
-	originalImageFile1.Close()
-	var original_width = imgc.Width
-	var original_height = imgc.Height
-	if float64(original_height) <= height && float64(original_width) <= width {
-		beego.Info(fmt.Sprintf("Serving Original Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_width,original_height, width, height))
-		http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-		os.Remove(fileName)
-		return
-	}
-	os.Remove(fileName)
-	//Preserve aspect ratio
-	width_ratio := width / float64(original_width)
-	height_ratio := height / float64(original_height)
-	if( width_ratio < height_ratio ) {
-		width = float64(original_width) * width_ratio
-		height = float64(original_height) * width_ratio
 	} else {
-		width = float64(original_width) * height_ratio
-		height = float64(original_height) * height_ratio
+		originalImageFile.Close()
+		originalImageFile1, err := os.Open(fileName)
+		imgc, _, err := image.DecodeConfig(originalImageFile1)
+		if err != nil {
+			resizeUsingImageMagick(this, fileName, width, height, quality, downloadUrl)
+		} else {
+			originalImageFile1.Close()
+			var original_width = imgc.Width
+			var original_height = imgc.Height
+			if float64(original_height) <= height && float64(original_width) <= width {
+				beego.Info(fmt.Sprintf("Serving Original Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_width,original_height, width, height))
+				http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+				os.Remove(fileName)
+				return
+			}
+			os.Remove(fileName)
+			//Preserve aspect ratio
+			width_ratio := width / float64(original_width)
+			height_ratio := height / float64(original_height)
+			if( width_ratio < height_ratio ) {
+				width = float64(original_width) * width_ratio
+				height = float64(original_height) * width_ratio
+			} else {
+				width = float64(original_width) * height_ratio
+				height = float64(original_height) * height_ratio
+			}
+			if width < 1 {
+				width = 1
+			}
+			if height < 1 {
+				height = 1
+			}
+			if quality < 1 {
+				quality = 90
+			}
+			beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
+			resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
+			resizeImageFile, err := os.Create(fileName)
+			if err != nil {
+				errMessage := fmt.Sprintf("Image Open Error: %s", err)
+				beego.Error(errMessage)
+				this.Ctx.Abort(500, errMessage)
+				os.Remove(fileName)
+				return
+			}
+			if fileExt == "jpeg" || fileExt == "jpg" {
+				jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: quality})
+			}
+			if fileExt == "png" {
+				png.Encode(resizeImageFile, resizedImage)
+			}
+			if fileExt == "gif" {
+				gif.Encode(resizeImageFile, resizedImage, &gif.Options{NumColors: 256})
+			}
+			resizeImageFile.Close()
+			http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+			os.Remove(fileName)
+		}
 	}
-	if width < 1 {
-		width = 1
-	}
-	if height < 1 {
-		height = 1
-	}
-	if quality < 1 {
-		quality = 90
-	}
-	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
-	resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
-	resizeImageFile, err := os.Create(fileName)
-	if err != nil {
-		errMessage := fmt.Sprintf("Image Open Error: %s", err)
-		beego.Error(errMessage)
-		this.Ctx.Abort(500, errMessage)
-		os.Remove(fileName)
-		return
-	}
-	if fileExt == "jpeg" || fileExt == "jpg" {
-		jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: quality})
-	}
-	if fileExt == "png" {
-		png.Encode(resizeImageFile, resizedImage)
-	}
-	if fileExt == "gif" {
-		gif.Encode(resizeImageFile, resizedImage, &gif.Options{NumColors: 256})
-	}
-	resizeImageFile.Close()
-	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-	os.Remove(fileName)
 }
 
 func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int, downloadUrl string ) {
