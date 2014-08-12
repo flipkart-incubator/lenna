@@ -17,6 +17,7 @@ import (
 	_ "image/gif"
 	"github.com/gographics/imagick/imagick"
 	"path/filepath"
+	"image/gif"
 )
 
 type ResizeController struct {
@@ -139,8 +140,11 @@ func (this *ResizeController) Get() {
 	if fileExt == "jpeg" || fileExt == "jpg" {
 		jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: quality})
 	}
-	if fileExt == "jpeg" || fileExt == "jpg" {
+	if fileExt == "png" {
 		png.Encode(resizeImageFile, resizedImage)
+	}
+	if fileExt == "gif" {
+		gif.Encode(resizeImageFile, resizedImage, &gif.Options{NumColors: 256})
 	}
 	resizeImageFile.Close()
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
@@ -201,7 +205,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 		return
 	}
 	mw.SetImageInterlaceScheme(imagick.INTERLACE_PLANE)
-	mw.SetImageFormat(filepath.Ext(downloadUrl))
+	mw.SetImageFormat(filepath.Ext(fileName))
 	mw.WriteImage(fileName)
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 	os.Remove(fileName)
