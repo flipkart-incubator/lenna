@@ -15,7 +15,6 @@ import (
 	_ "image/png"
 	_ "image/jpeg"
 	_ "image/gif"
-	"github.com/gographics/imagick/imagick"
 	"path/filepath"
 	"image/gif"
 )
@@ -85,13 +84,23 @@ func (this *ResizeController) Get() {
 	// try to decode the image
 	originalImg, _, err := image.Decode(originalImageFile)
 	if err != nil {
-		resizeUsingImageMagick(this, fileName, width, height, quality, downloadUrl)
+		errMessage := fmt.Sprintf("Image Decode Error: %s", err)
+		beego.Error(errMessage)
+		this.Ctx.Abort(500, errMessage)
+		originalImageFile.Close()
+		os.Remove(fileName)
+		return
 	} else {
 		originalImageFile.Close()
 		originalImageFile1, err := os.Open(fileName)
 		imgc, _, err := image.DecodeConfig(originalImageFile1)
 		if err != nil {
-			resizeUsingImageMagick(this, fileName, width, height, quality, downloadUrl)
+			errMessage := fmt.Sprintf("Image Get Decode Config Error: %s", err)
+			beego.Error(errMessage)
+			this.Ctx.Abort(500, errMessage)
+			originalImageFile1.Close()
+			os.Remove(fileName)
+			return
 		} else {
 			originalImageFile1.Close()
 			var original_width = imgc.Width
@@ -148,62 +157,62 @@ func (this *ResizeController) Get() {
 	}
 }
 
-func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int, downloadUrl string ) {
-	imagick.Initialize()
-	defer imagick.Terminate()
-	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
-	err := mw.ReadImage(fileName)
-	if err != nil {
-		errMessage := fmt.Sprintf("Image Open Error: %s", err)
-		beego.Error(errMessage)
-		this.Ctx.Abort(500, errMessage)
-		os.Remove(fileName)
-		return
-	}
-	// Get original logo size
-	original_width := mw.GetImageWidth()
-	original_height := mw.GetImageHeight()
-	width_ratio := width / float64(original_width)
-	height_ratio := height / float64(original_height)
-	if( width_ratio < height_ratio ) {
-		width = float64(original_width) * width_ratio
-		height = float64(original_height) * width_ratio
-	} else {
-		width = float64(original_width) * height_ratio
-		height = float64(original_height) * height_ratio
-	}
-	if width < 1 {
-		width = 1
-	}
-	if height < 1 {
-		height = 1
-	}
-	if quality < 1 {
-		quality = 90
-	}
-	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
-	// Resize the image using the Lanczos filter
-	// The blur factor is a float, where > 1 is blurry, < 1 is sharp
-	err = mw.ResizeImage(uint(width), uint(height), imagick.FILTER_LANCZOS, 1)
-	if err != nil {
-		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
-		beego.Error(errMessage)
-		this.Ctx.Abort(500, errMessage)
-		os.Remove(fileName)
-		return
-	}
-	err = mw.SetImageCompressionQuality(uint(quality))
-	if err != nil {
-		errMessage := fmt.Sprintf("Image Quality Error: %s", err)
-		beego.Error(errMessage)
-		this.Ctx.Abort(500, errMessage)
-		os.Remove(fileName)
-		return
-	}
-	mw.SetImageInterlaceScheme(imagick.INTERLACE_PLANE)
-	mw.SetImageFormat(filepath.Ext(fileName))
-	mw.WriteImage(fileName)
-	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-	os.Remove(fileName)
-}
+//func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int, downloadUrl string ) {
+//	imagick.Initialize()
+//	defer imagick.Terminate()
+//	mw := imagick.NewMagickWand()
+//	defer mw.Destroy()
+//	err := mw.ReadImage(fileName)
+//	if err != nil {
+//		errMessage := fmt.Sprintf("Image Open Error: %s", err)
+//		beego.Error(errMessage)
+//		this.Ctx.Abort(500, errMessage)
+//		os.Remove(fileName)
+//		return
+//	}
+//	// Get original logo size
+//	original_width := mw.GetImageWidth()
+//	original_height := mw.GetImageHeight()
+//	width_ratio := width / float64(original_width)
+//	height_ratio := height / float64(original_height)
+//	if( width_ratio < height_ratio ) {
+//		width = float64(original_width) * width_ratio
+//		height = float64(original_height) * width_ratio
+//	} else {
+//		width = float64(original_width) * height_ratio
+//		height = float64(original_height) * height_ratio
+//	}
+//	if width < 1 {
+//		width = 1
+//	}
+//	if height < 1 {
+//		height = 1
+//	}
+//	if quality < 1 {
+//		quality = 90
+//	}
+//	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
+//	// Resize the image using the Lanczos filter
+//	// The blur factor is a float, where > 1 is blurry, < 1 is sharp
+//	err = mw.ResizeImage(uint(width), uint(height), imagick.FILTER_LANCZOS, 1)
+//	if err != nil {
+//		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
+//		beego.Error(errMessage)
+//		this.Ctx.Abort(500, errMessage)
+//		os.Remove(fileName)
+//		return
+//	}
+//	err = mw.SetImageCompressionQuality(uint(quality))
+//	if err != nil {
+//		errMessage := fmt.Sprintf("Image Quality Error: %s", err)
+//		beego.Error(errMessage)
+//		this.Ctx.Abort(500, errMessage)
+//		os.Remove(fileName)
+//		return
+//	}
+//	mw.SetImageInterlaceScheme(imagick.INTERLACE_PLANE)
+//	mw.SetImageFormat(filepath.Ext(fileName))
+//	mw.WriteImage(fileName)
+//	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+//	os.Remove(fileName)
+//}
