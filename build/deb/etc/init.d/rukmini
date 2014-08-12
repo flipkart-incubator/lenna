@@ -103,14 +103,38 @@ usage()
 fix()
 {
     IS_PROCESS_RUNNING=`ps -ef | grep rukmini | wc -l`
-    if [ "${IS_PROCESS_RUNNING}" = 2 ]
+    NEW_PID_PROCESS=`ps -ef | grep rukmini | awk -F' ' '{print $2}' | head -n 1`
+    echo "Processes running: ${IS_PROCESS_RUNNING}"
+    ps -ef | grep rukmini
+    if [ "${IS_PROCESS_RUNNING}" -eq "2" ]
     then
-        NEW_PID_PROCESS=`ps -ef | grep rukmini | awk -F' ' '{print $2}' | tail -n 1`
-        sudo -u ${PACKAGE_USER} echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
-        sudo -u ${PACKAGE_USER} chmod a+rwx ${RUKMINI_PID_FILE}
+        echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
+        chmod 777 ${RUKMINI_PID_FILE}
         echo "PID file has been updated!"
-    else
-      sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
+    fi
+    if [ "${IS_PROCESS_RUNNING}" -eq "3" ]
+    then
+        echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
+        chmod 777 ${RUKMINI_PID_FILE}
+        echo "PID file has been updated!"
+    fi
+    if [ "${IS_PROCESS_RUNNING}" -eq "4" ]
+    then
+        echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
+        chmod 777 ${RUKMINI_PID_FILE}
+        echo "PID file has been updated!"
+    fi
+    if [ "${IS_PROCESS_RUNNING}" -eq "5" ]
+    then
+        echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
+        chmod 777 ${RUKMINI_PID_FILE}
+        echo "PID file has been updated!"
+    fi
+    if [ "${IS_PROCESS_RUNNING}" -eq "6" ]
+    then
+        echo ${NEW_PID_PROCESS} > ${RUKMINI_PID_FILE}
+        chmod 777 ${RUKMINI_PID_FILE}
+        echo "PID file has been updated!"
     fi
 }
 

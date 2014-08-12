@@ -61,7 +61,7 @@ if [ "$1" == "configure" ] ; then
     chmod -R a+rwx /var/lib/${PACKAGE}/src/${PACKAGE}/${PACKAGE}
 
     sudo chkconfig --level 2345  ${PACKAGE} on
-    sudo /etc/init.d/${PACKAGE} stop || true
+    sudo /etc/init.d/${PACKAGE} terminate || true
     sleep 5
     if [ -x "/etc/init.d/${PACKAGE}" ]; then
 	    sudo /etc/init.d/${PACKAGE} start || true
