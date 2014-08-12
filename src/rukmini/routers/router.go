@@ -10,5 +10,5 @@ func init() {
 	beego.Router("/status", &controllers.StatusController{}, "get:StatusCheck" )
 	beego.Router("/oor", &controllers.StatusController{}, "post:OutOfRotation" )
 	beego.Router("/bir", &controllers.StatusController{}, "post:InRotation" )
-	beego.Router("/:what:string/:width:int/:height:int/*", &controllers.ResizeController{}, "get:Get" )
+	beego.Router("/:what/:width/:height/*", &controllers.ResizeController{}, "get:Get" )
 }
