@@ -53,6 +53,8 @@ ACTION="$1"
 
 start()
 {
+    touch /var/run/${PACKAGE}/${PACKAGE}.pid
+    chmod -R 777 /var/run/${PACKAGE}/${PACKAGE}.pid
     start-stop-daemon --start --background --oknodo \
                 --umask 000 --user ${PACKAGE_USER} --chuid ${PACKAGE_USER} \
                 --make-pidfile --pidfile ${RUKMINI_PID_FILE} \
@@ -64,6 +66,8 @@ stop()
 {
     oor
     cleartemp
+    touch /var/run/${PACKAGE}/${PACKAGE}.pid
+    chmod -R 777 /var/run/${PACKAGE}/${PACKAGE}.pid
     start-stop-daemon --stop --signal 9 \
                         --quiet --pidfile ${RUKMINI_PID_FILE} \
                         --retry 300 \

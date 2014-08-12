@@ -33,6 +33,17 @@ if [ "$1" == "configure" ] ; then
     fi
     chmod 777 /etc/init.d/${PACKAGE}
     chmod -R 777 /var/lib/${PACKAGE}/src
+    if [ -d "/var/run/${PACKAGE}" ]; then
+ 	    chmod -R 777 /var/run/${PACKAGE}
+ 	else
+ 	    mkdir -p /var/run/${PACKAGE}
+    fi
+    touch /var/run/${PACKAGE}/${PACKAGE}.pid
+    chmod -R 777 /var/run/${PACKAGE}
+    chown -R ${PF_UID}:${PF_GID} /var/run/${PACKAGE}
+
+    chmod 777 /etc/init.d/${PACKAGE}
+    chmod -R 777 /var/lib/${PACKAGE}/src
 
     ## Delete job for package user. Must be run as root user ##
     echo "Adding cron job to clear temp..."
