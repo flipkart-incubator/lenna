@@ -89,8 +89,8 @@ func (this *ResizeController) Get() {
 	// try to decode the image
 	originalImg, _, err := image.Decode(originalImageFile)
 	if err != nil {
-		errMessage := fmt.Sprintf("Image Decode Error: %s", err)
-		beego.Error(errMessage)
+		errMessage := fmt.Sprintf("Image Decode Error. Fallback to ImageMagick: %s", err)
+		beego.Warn(errMessage)
 //		this.Ctx.Abort(500, errMessage)
 		originalImageFile.Close()
 //		os.Remove(fileName)
@@ -101,8 +101,8 @@ func (this *ResizeController) Get() {
 		originalImageFile1, err := os.Open(fileName)
 		imgc, _, err := image.DecodeConfig(originalImageFile1)
 		if err != nil {
-			errMessage := fmt.Sprintf("Image Get Decode Config Error: %s", err)
-			beego.Error(errMessage)
+			errMessage := fmt.Sprintf("Image Get Decode Config Error. Fallback to ImageMagick: %s", err)
+			beego.Warn(errMessage)
 //			this.Ctx.Abort(500, errMessage)
 			originalImageFile1.Close()
 //			os.Remove(fileName)
