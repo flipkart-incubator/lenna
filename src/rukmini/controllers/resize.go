@@ -219,7 +219,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 		return
 	}
 	mw.SetImageInterlaceScheme(imagick.INTERLACE_PLANE)
-	mw.SetImageFormat(strings.Replace(filepath.Ext(fileName), ".", ""))
+	mw.SetImageFormat(strings.Replace(filepath.Ext(fileName), ".", "", -1))
 	mw.WriteImage(fileName)
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 	os.Remove(fileName)
