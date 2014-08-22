@@ -164,18 +164,17 @@ func (this *ResizeController) Get() {
 func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int, downloadUrl string ) {
 	//Serialize imagemagick calls
 	imageMagickConcurrencyLock.Lock()
-	defer imageMagickConcurrencyLock.Unlock()
-
 	imagick.Initialize()
-	defer imagick.Terminate()
 	mw := imagick.NewMagickWand()
-	defer mw.Destroy()
 	err := mw.ReadImage(fileName)
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Open Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
 		os.Remove(fileName)
+		imagick.Terminate()
+		mw.Destroy()
+		imageMagickConcurrencyLock.Unlock()
 		return
 	}
 	// Get original logo size
@@ -207,6 +206,9 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
+		imagick.Terminate()
+		mw.Destroy()
+		imageMagickConcurrencyLock.Unlock()
 		os.Remove(fileName)
 		return
 	}
@@ -215,6 +217,9 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 		errMessage := fmt.Sprintf("Image Quality Error: %s", err)
 		beego.Error(errMessage)
 		this.Ctx.Abort(500, errMessage)
+		imagick.Terminate()
+		mw.Destroy()
+		imageMagickConcurrencyLock.Unlock()
 		os.Remove(fileName)
 		return
 	}
@@ -222,5 +227,8 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	mw.SetImageFormat(strings.Replace(filepath.Ext(fileName), ".", "", -1))
 	mw.WriteImage(fileName)
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+	imagick.Terminate()
+	mw.Destroy()
+	imageMagickConcurrencyLock.Unlock()
 	os.Remove(fileName)
 }
