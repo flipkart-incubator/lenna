@@ -28,6 +28,10 @@ type ResizeController struct {
 
 var imageMagickConcurrencyLock sync.RWMutex
 
+var transport = &http.Transport{MaxIdleConnsPerHost: 64}
+
+var client = &http.Client{Transport: transport}
+
 /**
  * Resize the image and maintain aspect ratio
  */
@@ -58,7 +62,8 @@ func (this *ResizeController) Get() {
 	fileExt := filepath.Ext(imageUri)
 	fileName := fmt.Sprintf("/tmp/%s%s", u4, fileExt)
 	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what +".source"), imageUri)
-	response, err := http.Get(downloadUrl)
+	response, err := client.Get(downloadUrl)
+	defer response.Body.Close()
 	if err != nil {
 		errMessage := fmt.Sprintf("%s", err)
 		beego.Error(errMessage)
@@ -67,7 +72,6 @@ func (this *ResizeController) Get() {
 	}
 	if response.StatusCode == 200 || response.StatusCode == 302 || response.StatusCode == 304 {
 		imageData, err := ioutil.ReadAll(response.Body)
-		response.Body.Close()
 		if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 			errMessage := fmt.Sprintf("%s", err)
 			beego.Error(errMessage)
