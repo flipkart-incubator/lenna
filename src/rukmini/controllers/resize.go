@@ -153,7 +153,23 @@ func (this *ResizeController) Get() {
 				if fileExt == ".gif" {
 					gif.Encode(resizeImageFile, resizedImage, &gif.Options{NumColors: 256})
 				}
+				stat, err := resizeImageFile.Stat()
+				if err != nil {
+					errMessage := fmt.Sprintf("Image Open Error: %s", err)
+					beego.Error(errMessage)
+					this.Ctx.Abort(500, errMessage)
+					resizeImageFile.Close()
+					os.Remove(fileName)
+					return
+				}
 				resizeImageFile.Close()
+				if stat.Size() < 100 {
+					errMessage := fmt.Sprintf("Image Size too small: %s", downloadUrl)
+					beego.Error(errMessage)
+					this.Ctx.Abort(500, errMessage)
+					os.Remove(fileName)
+					return
+				}
 				http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 				os.Remove(fileName)
 			}
@@ -225,6 +241,31 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	mw.SetImageInterlaceScheme(imagick.INTERLACE_PLANE)
 	mw.SetImageFormat(strings.Replace(filepath.Ext(fileName), ".", "", -1))
 	mw.WriteImage(fileName)
+	resizeImageFile, err := os.Open(fileName)
+	if err != nil {
+		errMessage := fmt.Sprintf("Image Open Error: %s", err)
+		beego.Error(errMessage)
+		this.Ctx.Abort(500, errMessage)
+		os.Remove(fileName)
+		return
+	}
+	stat, err := resizeImageFile.Stat()
+	if err != nil {
+		errMessage := fmt.Sprintf("Image Open Error: %s", err)
+		beego.Error(errMessage)
+		this.Ctx.Abort(500, errMessage)
+		resizeImageFile.Close()
+		os.Remove(fileName)
+		return
+	}
+	resizeImageFile.Close()
+	if stat.Size() < 100 {
+		errMessage := fmt.Sprintf("Image Size too small: %s", downloadUrl)
+		beego.Error(errMessage)
+		this.Ctx.Abort(500, errMessage)
+		os.Remove(fileName)
+		return
+	}
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 	os.Remove(fileName)
 }
