@@ -7,7 +7,7 @@ PF_UID=9075
 PF_GID=9001
 
 CMD="$1"
-if [ "${CMD}" == "remove" -o ] || [ "${CMD}" == "purge" -o ]; then
+if [ "${CMD}" == "remove" -o "${CMD}" == "purge" ]; then
     sudo /etc/init.d/${PACKAGE} stop || true
     #Remove Service Script
     if [ -f "/etc/init.d/${PACKAGE}" ] ; then
