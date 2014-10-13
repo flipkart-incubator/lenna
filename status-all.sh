@@ -5,10 +5,10 @@ do
     echo ${API_HOST}
     curl -XGET ${API_HOST}":8081/status" || true
 done
-for APINODE in 1 2 3 4
+for APINODE in 1 2 3 4 5 6 7 8
 do
-    API_HOST="rukmini"${APINODE}".nm.flipkart.com"
-    echo ${API_HOST}
+    API_HOST="mobile-rukmini"${APINODE}".nm.flipkart.com"
+	echo ${API_HOST}
     curl -XGET ${API_HOST}":8081/status" || true
 done
 echo "Done"

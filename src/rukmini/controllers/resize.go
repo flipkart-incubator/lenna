@@ -22,13 +22,14 @@ import (
 	"strings"
 )
 
+
 type ResizeController struct {
 	beego.Controller
 }
 
 var imageMagickConcurrencyLock sync.RWMutex
 
-var transport = &http.Transport{MaxIdleConnsPerHost: 64}
+var transport = &http.Transport{MaxIdleConnsPerHost: 64, DisableKeepAlives: true}
 
 var client = &http.Client{Transport: transport}
 
@@ -36,6 +37,7 @@ var client = &http.Client{Transport: transport}
  * Resize the image and maintain aspect ratio
  */
 func (this *ResizeController) Get() {
+
 	//Source key that is in config which points to a source host
 	what := this.Ctx.Input.Param(":what")
 	width, err := strconv.ParseFloat(this.Ctx.Input.Param(":width"), 64)
