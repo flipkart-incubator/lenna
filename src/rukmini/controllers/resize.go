@@ -42,11 +42,13 @@ func (this *ResizeController) Get() {
 	what := this.Ctx.Input.Param(":what")
 	width, err := strconv.ParseFloat(this.Ctx.Input.Param(":width"), 64)
 	if width < 0 || err != nil {
+		logAccess(this, 400, 0)
 		this.Ctx.Abort(400, "Invalid width specified")
 		return
 	}
 	height, err := strconv.ParseFloat(this.Ctx.Input.Param(":height"), 64)
 	if height < 0 || err != nil {
+		logAccess(this, 400, 0)
 		this.Ctx.Abort(400, "Invalid height specified")
 		return
 	}
@@ -68,7 +70,7 @@ func (this *ResizeController) Get() {
 	defer response.Body.Close()
 	if err != nil {
 		errMessage := fmt.Sprintf("%s", err)
-		beego.Error(errMessage)
+		logAccess(this, 500, 0)
 		this.Ctx.Abort(500, errMessage)
 		return
 	}
@@ -76,7 +78,7 @@ func (this *ResizeController) Get() {
 		imageData, err := ioutil.ReadAll(response.Body)
 		if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 			errMessage := fmt.Sprintf("%s", err)
-			beego.Error(errMessage)
+			logAccess(this, 500, 0)
 			this.Ctx.Abort(500, errMessage)
 			return
 		}
@@ -84,7 +86,7 @@ func (this *ResizeController) Get() {
 		originalImageFile, err := os.Open(fileName)
 		if err != nil {
 			errMessage := fmt.Sprintf("Image Open Error: %s", err)
-			beego.Error(errMessage)
+			logAccess(this, 500, 0)
 			this.Ctx.Abort(500, errMessage)
 			return
 		}
@@ -111,7 +113,7 @@ func (this *ResizeController) Get() {
 				var original_width = imgc.Width
 				var original_height = imgc.Height
 				if float64(original_height) <= height && float64(original_width) <= width {
-					beego.Info(fmt.Sprintf("Serving Original Image: %s | Size: %d X %d -> %4.f X %4.f", downloadUrl, original_width,original_height, width, height))
+					logAccess(this, 200, 0)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 					os.Remove(fileName)
 					return
@@ -141,7 +143,7 @@ func (this *ResizeController) Get() {
 				resizeImageFile, err := os.Create(fileName)
 				if err != nil {
 					errMessage := fmt.Sprintf("Image Open Error: %s", err)
-					beego.Error(errMessage)
+					logAccess(this, 500, 0)
 					this.Ctx.Abort(500, errMessage)
 					os.Remove(fileName)
 					return
@@ -158,26 +160,29 @@ func (this *ResizeController) Get() {
 				stat, err := resizeImageFile.Stat()
 				if err != nil {
 					errMessage := fmt.Sprintf("Image Open Error: %s", err)
-					beego.Error(errMessage)
+					logAccess(this, 500, 0)
 					this.Ctx.Abort(500, errMessage)
 					resizeImageFile.Close()
 					os.Remove(fileName)
 					return
 				}
 				resizeImageFile.Close()
-				if stat.Size() < 100 {
+				fSize := stat.Size()
+				if fSize < 100 {
 					errMessage := fmt.Sprintf("Image Size too small: %s", downloadUrl)
-					beego.Error(errMessage)
+					logAccess(this, 500, 0)
 					this.Ctx.Abort(500, errMessage)
 					os.Remove(fileName)
 					return
 				}
+				logAccess(this, 200, fSize)
 				http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 				os.Remove(fileName)
 			}
 		}
 	} else {
-		beego.Error("Error downloading file: " +downloadUrl +" Status: " +strconv.Itoa(response.StatusCode) +"[" +response.Status +"]")
+//		beego.Error("Error downloading file: " +downloadUrl +" Status: " +strconv.Itoa(response.StatusCode) +"[" +response.Status +"]")
+		logAccess(this, 500 , 0)
 		this.Ctx.Abort(response.StatusCode, response.Status)
 		return
 	}
@@ -195,7 +200,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	err := mw.ReadImage(fileName)
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Open Error: %s", err)
-		beego.Error(errMessage)
+		logAccess(this, 500, 0)
 		this.Ctx.Abort(500, errMessage)
 		os.Remove(fileName)
 		return
@@ -221,13 +226,13 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	if quality < 1 {
 		quality = 90
 	}
-	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
+//	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
 	// Resize the image using the Lanczos filter
 	// The blur factor is a float, where > 1 is blurry, < 1 is sharp
 	err = mw.ResizeImage(uint(width), uint(height), imagick.FILTER_LANCZOS, 1)
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
-		beego.Error(errMessage)
+		logAccess(this, 500, 0)
 		this.Ctx.Abort(500, errMessage)
 		os.Remove(fileName)
 		return
@@ -235,7 +240,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	err = mw.SetImageCompressionQuality(uint(quality))
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Quality Error: %s", err)
-		beego.Error(errMessage)
+		logAccess(this, 500, 0)
 		this.Ctx.Abort(500, errMessage)
 		os.Remove(fileName)
 		return
@@ -246,7 +251,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	resizeImageFile, err := os.Open(fileName)
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Open Error: %s", err)
-		beego.Error(errMessage)
+		logAccess(this, 500, 0)
 		this.Ctx.Abort(500, errMessage)
 		os.Remove(fileName)
 		return
@@ -254,20 +259,27 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	stat, err := resizeImageFile.Stat()
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Open Error: %s", err)
-		beego.Error(errMessage)
+		logAccess(this, 500, 0)
 		this.Ctx.Abort(500, errMessage)
 		resizeImageFile.Close()
 		os.Remove(fileName)
 		return
 	}
 	resizeImageFile.Close()
-	if stat.Size() < 100 {
+	fSize := stat.Size()
+	if fSize < 100 {
 		errMessage := fmt.Sprintf("Image Size too small: %s", downloadUrl)
-		beego.Error(errMessage)
+		logAccess(this, 500, fSize)
 		this.Ctx.Abort(500, errMessage)
 		os.Remove(fileName)
 		return
 	}
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
+	logAccess(this, 200, fSize)
 	os.Remove(fileName)
+}
+
+func logAccess(this *ResizeController, status int, size int64) {
+	clientIp := this.Ctx.Request.Header.Get("FK-Client-IP")
+	beego.Info(clientIp, this.Ctx.Request.UserAgent(), this.Ctx.Request.Method, this.Ctx.Request.RequestURI, this.Ctx.Request.Proto, status, size)
 }

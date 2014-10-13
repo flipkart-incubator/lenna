@@ -5,6 +5,8 @@ import (
 	"github.com/astaxie/beego"
 )
 
+
+
 func main() {
 	beego.SetLogger("file", `{"filename":"/var/log/rukmini/rukmini.log"}`)
 	beego.Run()
