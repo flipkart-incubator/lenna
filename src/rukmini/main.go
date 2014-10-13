@@ -8,7 +8,7 @@ import (
 
 
 func main() {
-	beego.SetLogger("file", `{"filename":"/var/log/rukmini/access.log"}`)
+	beego.SetLogger("file", `{"filename":"/var/log/rukmini/rukmini.log"}`)
 	beego.Run()
 }
 
