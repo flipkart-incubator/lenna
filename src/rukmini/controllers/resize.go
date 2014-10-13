@@ -138,7 +138,6 @@ func (this *ResizeController) Get() {
 				if quality < 1 {
 					quality = 90
 				}
-				beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
 				resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
 				resizeImageFile, err := os.Create(fileName)
 				if err != nil {
