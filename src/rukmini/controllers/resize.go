@@ -66,7 +66,9 @@ func (this *ResizeController) Get() {
 	fileExt := filepath.Ext(imageUri)
 	fileName := fmt.Sprintf("/tmp/%s%s", u4, fileExt)
 	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what +".source"), imageUri)
-	response, err := client.Get(downloadUrl)
+	req, _ := http.NewRequest("GET", downloadUrl, nil)
+	req.Host = "rukmini.flixcart.com"
+	response, err := client.Do(req)
 	defer response.Body.Close()
 	if err != nil {
 		errMessage := fmt.Sprintf("%s", err)
