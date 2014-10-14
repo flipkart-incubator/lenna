@@ -6,13 +6,6 @@ do
     ssh ${API_HOST} "sudo apt-get update; sudo apt-get install rukmini"
     echo "Deployed build on "${API_HOST}
 done
-for APINODE in 1 2 3 4
-do
-    API_HOST="rukmini"${APINODE}".nm.flipkart.com"
-    echo "Deploying build on "${API_HOST}
-    ssh ${API_HOST} "sudo apt-get update; sudo apt-get install rukmini"
-    echo "Deployed build on "${API_HOST}
-done
 for APINODE in 1 2 3 4 5 6 7 8
 do
     API_HOST="mobile-rukmini"${APINODE}".nm.flipkart.com"
