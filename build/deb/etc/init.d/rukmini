@@ -59,7 +59,9 @@ start()
                 --umask 000 --user ${PACKAGE_USER} --chuid ${PACKAGE_USER} \
                 --make-pidfile --pidfile ${RUKMINI_PID_FILE} \
                 --exec ${RUKMINI_EXE} 2>&1 > /dev/null
-    return $?
+    START_STATUS=$?
+    sudo /etc/init.d/haproxy start || true
+    return ${START_STATUS}
 }
 
 stop()
@@ -73,7 +75,9 @@ stop()
                         --retry 300 \
                         --user ${PACKAGE_USER} \
                         --exec ${RUKMINI_EXE} 2>&1 > /dev/null
-    return $?
+    STOP_STATUS=$?
+    sudo /etc/init.d/haproxy stop || true
+    return ${STOP_STATUS}
 }
 
 terminate()
@@ -88,6 +92,7 @@ terminate()
             sudo -u ${PACKAGE_USER} rm -f ${RUKMINI_PID_FILE}
         fi
     fi
+    sudo /etc/init.d/haproxy stop || true
     echo
     echo "Service has been stopped using black magic and voodoo!"
     echo
