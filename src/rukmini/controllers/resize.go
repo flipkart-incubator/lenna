@@ -37,7 +37,7 @@ var client = &http.Client{Transport: transport}
  * Resize the image and maintain aspect ratio
  */
 func (this *ResizeController) Get() {
-
+	this.Ctx.Output.Header("Connection", "close")
 	//Source key that is in config which points to a source host
 	what := this.Ctx.Input.Param(":what")
 	width, err := strconv.ParseFloat(this.Ctx.Input.Param(":width"), 64)
@@ -69,19 +69,20 @@ func (this *ResizeController) Get() {
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
 	req.Host = "rukmini.flixcart.com"
 	response, err := client.Do(req)
-	defer response.Body.Close()
 	if err != nil {
 		errMessage := fmt.Sprintf("%s", err)
+		beego.Info(errMessage)
 		logAccess(this, 500, 0)
-		this.Ctx.Abort(500, errMessage)
+		this.CustomAbort(500, errMessage)
 		return
 	}
+	defer response.Body.Close()
 	if response.StatusCode == 200 || response.StatusCode == 302 || response.StatusCode == 304 {
 		imageData, err := ioutil.ReadAll(response.Body)
 		if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 			errMessage := fmt.Sprintf("%s", err)
 			logAccess(this, 500, 0)
-			this.Ctx.Abort(500, errMessage)
+			this.CustomAbort(500, errMessage)
 			return
 		}
 		// open "test.jpg"
@@ -89,7 +90,7 @@ func (this *ResizeController) Get() {
 		if err != nil {
 			errMessage := fmt.Sprintf("Image Open Error: %s", err)
 			logAccess(this, 500, 0)
-			this.Ctx.Abort(500, errMessage)
+			this.CustomAbort(500, errMessage)
 			return
 		}
 		// try to decode the image
@@ -145,7 +146,7 @@ func (this *ResizeController) Get() {
 				if err != nil {
 					errMessage := fmt.Sprintf("Image Open Error: %s", err)
 					logAccess(this, 500, 0)
-					this.Ctx.Abort(500, errMessage)
+					this.CustomAbort(500, errMessage)
 					os.Remove(fileName)
 					return
 				}
@@ -162,7 +163,7 @@ func (this *ResizeController) Get() {
 				if err != nil {
 					errMessage := fmt.Sprintf("Image Open Error: %s", err)
 					logAccess(this, 500, 0)
-					this.Ctx.Abort(500, errMessage)
+					this.CustomAbort(500, errMessage)
 					resizeImageFile.Close()
 					os.Remove(fileName)
 					return
@@ -172,7 +173,7 @@ func (this *ResizeController) Get() {
 				if fSize < 100 {
 					errMessage := fmt.Sprintf("Image Size too small: %s", downloadUrl)
 					logAccess(this, 500, 0)
-					this.Ctx.Abort(500, errMessage)
+					this.CustomAbort(500, errMessage)
 					os.Remove(fileName)
 					return
 				}
@@ -184,7 +185,7 @@ func (this *ResizeController) Get() {
 	} else {
 //		beego.Error("Error downloading file: " +downloadUrl +" Status: " +strconv.Itoa(response.StatusCode) +"[" +response.Status +"]")
 		logAccess(this, 500 , 0)
-		this.Ctx.Abort(response.StatusCode, response.Status)
+		this.CustomAbort(response.StatusCode, response.Status)
 		return
 	}
 }
@@ -234,7 +235,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Resize Error: %s", err)
 		logAccess(this, 500, 0)
-		this.Ctx.Abort(500, errMessage)
+		this.CustomAbort(500, errMessage)
 		os.Remove(fileName)
 		return
 	}
@@ -242,7 +243,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Quality Error: %s", err)
 		logAccess(this, 500, 0)
-		this.Ctx.Abort(500, errMessage)
+		this.CustomAbort(500, errMessage)
 		os.Remove(fileName)
 		return
 	}
@@ -253,7 +254,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Open Error: %s", err)
 		logAccess(this, 500, 0)
-		this.Ctx.Abort(500, errMessage)
+		this.CustomAbort(500, errMessage)
 		os.Remove(fileName)
 		return
 	}
@@ -261,7 +262,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	if err != nil {
 		errMessage := fmt.Sprintf("Image Open Error: %s", err)
 		logAccess(this, 500, 0)
-		this.Ctx.Abort(500, errMessage)
+		this.CustomAbort(500, errMessage)
 		resizeImageFile.Close()
 		os.Remove(fileName)
 		return
@@ -271,7 +272,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	if fSize < 100 {
 		errMessage := fmt.Sprintf("Image Size too small: %s", downloadUrl)
 		logAccess(this, 500, fSize)
-		this.Ctx.Abort(500, errMessage)
+		this.CustomAbort(500, errMessage)
 		os.Remove(fileName)
 		return
 	}
