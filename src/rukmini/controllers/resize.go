@@ -181,6 +181,7 @@ func (this *ResizeController) Get() {
 				logAccess(this, 200, fSize)
 				http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 				os.Remove(fileName)
+				return
 			}
 		}
 	} else {
@@ -280,6 +281,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 	logAccess(this, 200, fSize)
 	os.Remove(fileName)
+	return
 }
 
 func logAccess(this *ResizeController, status int, size int64) {
