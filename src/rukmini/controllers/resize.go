@@ -68,6 +68,7 @@ func (this *ResizeController) Get() {
 	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what +".source"), imageUri)
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
 	req.Host = "rukmini.flixcart.com"
+	req.Header.Add("Connection", "close")
 	response, err := client.Do(req)
 	if err != nil {
 		errMessage := fmt.Sprintf("%s", err)
