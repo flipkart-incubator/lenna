@@ -187,7 +187,6 @@ cleartemp() {
     cd /tmp
     find . -mmin +1 -type f -print -delete
     echo "Cleared temp directory!"
-    check
 }
 
 case "${ACTION}" in
