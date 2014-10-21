@@ -224,6 +224,9 @@ case "${ACTION}" in
     cleartemp)
         cleartemp
         ;;
+    check)
+        check
+        ;;
     *)
        usage
        ;;
