@@ -98,6 +98,17 @@ terminate()
     echo
 }
 
+check()
+{
+    echo "Checking process health..."
+    OPEN_CONNECTIONS=`netstat -an | grep 8081 | grep ESTABLISHED |wc -l`
+    if [ "${OPEN_CONNECTIONS}" -gt "5000" ]
+    then
+        echo "Oh oh.. we have a problem.. restart solves everthing.."
+        stop
+        start
+    fi
+}
 
 usage()
 {
@@ -176,6 +187,7 @@ cleartemp() {
     cd /tmp
     find . -mmin +1 -type f -print -delete
     echo "Cleared temp directory!"
+    check
 }
 
 case "${ACTION}" in
