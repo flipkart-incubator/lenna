@@ -31,7 +31,7 @@ var imageMagickConcurrencyLock sync.RWMutex
 
 var transport = &http.Transport{MaxIdleConnsPerHost: 64, DisableKeepAlives: true}
 
-var client = &http.Client{Transport: transport}
+var client = &http.Client{Transport: transport, Timeout: 3000000000}
 
 /**
  * Resize the image and maintain aspect ratio
