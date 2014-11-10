@@ -20,6 +20,8 @@ import (
 	"sync"
 	"github.com/gographics/imagick/imagick"
 	"strings"
+	"time"
+	"net"
 )
 
 
@@ -29,9 +31,15 @@ type ResizeController struct {
 
 var imageMagickConcurrencyLock sync.RWMutex
 
-var transport = &http.Transport{MaxIdleConnsPerHost: 64, DisableKeepAlives: true}
+var timeout = time.Duration(3 * time.Second)
 
-var client = &http.Client{Transport: transport, Timeout: 3000000000}
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, timeout)
+}
+
+var transport = &http.Transport{MaxIdleConnsPerHost: 64, DisableKeepAlives: true, Dial: dialTimeout}
+
+var client = &http.Client{Transport: transport, Timeout: timeout}
 
 /**
  * Resize the image and maintain aspect ratio
