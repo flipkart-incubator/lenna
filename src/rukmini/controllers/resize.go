@@ -2,28 +2,24 @@ package controllers
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"net/http"
-	"strconv"
 	"github.com/astaxie/beego"
-	"github.com/satori/uuid"
+	"github.com/gographics/imagick/imagick"
 	"github.com/nfnt/resize"
+	"github.com/satori/uuid"
 	"image"
+	"image/gif"
 	"image/jpeg"
 	"image/png"
-	"image/gif"
-	_ "image/png"
-	_ "image/jpeg"
-	_ "image/gif"
-	"path/filepath"
-	"sync"
-	"github.com/gographics/imagick/imagick"
-	"strings"
-	"time"
+	"io/ioutil"
 	"net"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
-
 
 type ResizeController struct {
 	beego.Controller
@@ -73,7 +69,7 @@ func (this *ResizeController) Get() {
 	u4 := uuid.NewV4()
 	fileExt := filepath.Ext(imageUri)
 	fileName := fmt.Sprintf("/tmp/%s%s", u4, fileExt)
-	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what +".source"), imageUri)
+	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what+".source"), imageUri)
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
 	req.Host = "rukmini.flixcart.com"
 	req.Header.Add("Connection", "close")
@@ -85,6 +81,7 @@ func (this *ResizeController) Get() {
 	}
 	if response.StatusCode == 200 || response.StatusCode == 302 || response.StatusCode == 304 {
 		imageData, err := ioutil.ReadAll(response.Body)
+		response.Body.Close()
 		if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 			logAccess(this, 500, 0)
 			this.Abort("500")
@@ -129,7 +126,7 @@ func (this *ResizeController) Get() {
 				//Preserve aspect ratio
 				width_ratio := width / float64(original_width)
 				height_ratio := height / float64(original_height)
-				if( width_ratio < height_ratio ) {
+				if width_ratio < height_ratio {
 					width = float64(original_width) * width_ratio
 					height = float64(original_height) * width_ratio
 				} else {
@@ -184,16 +181,15 @@ func (this *ResizeController) Get() {
 				return
 			}
 		}
-		defer response.Body.Close()
 	} else {
-//		beego.Error("Error downloading file: " +downloadUrl +" Status: " +strconv.Itoa(response.StatusCode) +"[" +response.Status +"]")
-		logAccess(this, 500 , 0)
+		//		beego.Error("Error downloading file: " +downloadUrl +" Status: " +strconv.Itoa(response.StatusCode) +"[" +response.Status +"]")
+		logAccess(this, 500, 0)
 		this.Abort("500")
 		return
 	}
 }
 
-func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int, downloadUrl string ) {
+func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int, downloadUrl string) {
 	//Serialize imagemagick calls
 	imageMagickConcurrencyLock.Lock()
 	defer imageMagickConcurrencyLock.Unlock()
@@ -214,7 +210,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	original_height := mw.GetImageHeight()
 	width_ratio := width / float64(original_width)
 	height_ratio := height / float64(original_height)
-	if( width_ratio < height_ratio ) {
+	if width_ratio < height_ratio {
 		width = float64(original_width) * width_ratio
 		height = float64(original_height) * width_ratio
 	} else {
@@ -230,7 +226,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	if quality < 1 {
 		quality = 90
 	}
-//	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
+	//	beego.Info(fmt.Sprintf("Image: %s | Size: %d X %d -> %4.f X %4.f | Width Ration: %4.4f | Height Ratio: %4.4f | Quality: %d", downloadUrl, original_width,original_height, width, height, width_ratio, height_ratio, quality))
 	// Resize the image using the Lanczos filter
 	// The blur factor is a float, where > 1 is blurry, < 1 is sharp
 	err = mw.ResizeImage(uint(width), uint(height), imagick.FILTER_LANCZOS, 1)
