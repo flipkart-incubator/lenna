@@ -25,6 +25,14 @@ type ResizeController struct {
 	beego.Controller
 }
 
+type ResizeParameters struct {
+	what    string
+	width   float64
+	height  float64
+	quality int
+	uri     string
+}
+
 var imageMagickConcurrencyLock sync.RWMutex
 
 var timeout = time.Duration(3 * time.Second)
@@ -37,23 +45,17 @@ var transport = &http.Transport{MaxIdleConnsPerHost: 64, DisableKeepAlives: true
 
 var client = &http.Client{Transport: transport, Timeout: timeout}
 
-/**
- * Resize the image and maintain aspect ratio
- */
-func (this *ResizeController) Get() {
-	//Source key that is in config which points to a source host
+func (this *ResizeController) ExtractParameters() (*ResizeParameters, error) {
 	what := this.Ctx.Input.Param(":what")
 	width, err := strconv.ParseFloat(this.Ctx.Input.Param(":width"), 64)
-	if width < 0 || err != nil {
-		logAccess(this, 400, 0)
-		this.CustomAbort(400, "Invalid width specified")
-		return
+	var convertedWidth = width
+	if err != nil {
+		return &ResizeParameters{}, err
 	}
 	height, err := strconv.ParseFloat(this.Ctx.Input.Param(":height"), 64)
-	if height < 0 || err != nil {
-		logAccess(this, 400, 0)
-		this.CustomAbort(400, "Invalid height specified")
-		return
+	var convertedHeight = height
+	if err != nil {
+		return &ResizeParameters{}, err
 	}
 	imageUri := this.Ctx.Input.Param(":splat")
 	var quality int = 90
@@ -65,12 +67,25 @@ func (this *ResizeController) Get() {
 			quality = qt
 		}
 	}
+	return &ResizeParameters{what: what, width: convertedWidth, height: convertedHeight, quality: quality, uri: imageUri}, nil
+}
+
+/**
+ * Resize the image and maintain aspect ratio
+ */
+func (this *ResizeController) Get() {
+	resizeParameters, err := this.ExtractParameters()
+	if err != nil {
+		logAccess(this, 400, 0)
+		this.Abort("400")
+		return
+	}
 	u4 := uuid.NewV4()
-	fileExt := filepath.Ext(imageUri)
+	fileExt := filepath.Ext(resizeParameters.uri)
 	fileName := fmt.Sprintf("/tmp/%s%s", u4, fileExt)
-	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what+".source"), imageUri)
+	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(resizeParameters.what+".source"), resizeParameters.uri)
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
-	req.Host = "rukmini.flixcart.com"
+	//	req.Host = "rukmini.flixcart.com"
 	imageDownloadResponse, err := client.Do(req)
 	if err != nil {
 		logAccess(this, 500, 0)
@@ -100,7 +115,7 @@ func (this *ResizeController) Get() {
 			errMessage := fmt.Sprintf("Image Decode Error. Fallback to ImageMagick: %s", err)
 			beego.Warn(errMessage)
 			originalImageFile.Close()
-			resizeUsingImageMagick(this, fileName, width, height, quality, downloadUrl)
+			resizeUsingImageMagick(this, fileName, resizeParameters.width, resizeParameters.height, resizeParameters.quality, downloadUrl)
 		} else {
 			originalImageFile.Close()
 			originalImageFile1, err := os.Open(fileName)
@@ -111,12 +126,12 @@ func (this *ResizeController) Get() {
 				//			this.Ctx.Abort(500, errMessage)
 				originalImageFile1.Close()
 				//			os.Remove(fileName)
-				resizeUsingImageMagick(this, fileName, width, height, quality, downloadUrl)
+				resizeUsingImageMagick(this, fileName, resizeParameters.width, resizeParameters.height, resizeParameters.quality, downloadUrl)
 			} else {
 				originalImageFile1.Close()
 				var original_width = imgc.Width
 				var original_height = imgc.Height
-				if float64(original_height) <= height && float64(original_width) <= width {
+				if float64(original_height) <= resizeParameters.height && float64(original_width) <= resizeParameters.width {
 					logAccess(this, 200, 0)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 					os.Remove(fileName)
@@ -124,8 +139,10 @@ func (this *ResizeController) Get() {
 				}
 				os.Remove(fileName)
 				//Preserve aspect ratio
-				width_ratio := width / float64(original_width)
-				height_ratio := height / float64(original_height)
+				width_ratio := resizeParameters.width / float64(original_width)
+				height_ratio := resizeParameters.height / float64(original_height)
+				var width = float64(-1)
+				var height = float64(-1)
 				if width_ratio < height_ratio {
 					width = float64(original_width) * width_ratio
 					height = float64(original_height) * width_ratio
@@ -139,9 +156,6 @@ func (this *ResizeController) Get() {
 				if height < 1 {
 					height = 1
 				}
-				if quality < 1 {
-					quality = 90
-				}
 				resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
 				resizeImageFile, err := os.Create(fileName)
 				if err != nil {
@@ -151,7 +165,7 @@ func (this *ResizeController) Get() {
 					return
 				}
 				if fileExt == ".jpeg" || fileExt == ".jpg" {
-					jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: quality})
+					jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: resizeParameters.quality})
 				}
 				if fileExt == ".png" {
 					png.Encode(resizeImageFile, resizedImage)
