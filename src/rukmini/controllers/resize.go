@@ -41,7 +41,6 @@ var client = &http.Client{Transport: transport, Timeout: timeout}
  * Resize the image and maintain aspect ratio
  */
 func (this *ResizeController) Get() {
-	this.Ctx.Output.Header("Connection", "close")
 	//Source key that is in config which points to a source host
 	what := this.Ctx.Input.Param(":what")
 	width, err := strconv.ParseFloat(this.Ctx.Input.Param(":width"), 64)
@@ -72,16 +71,17 @@ func (this *ResizeController) Get() {
 	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(what+".source"), imageUri)
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
 	req.Host = "rukmini.flixcart.com"
-	req.Header.Add("Connection", "close")
-	response, err := client.Do(req)
+	imageDownloadResponse, err := client.Do(req)
 	if err != nil {
 		logAccess(this, 500, 0)
 		this.Abort("500")
 		return
 	}
-	if response.StatusCode == 200 || response.StatusCode == 302 || response.StatusCode == 304 {
-		imageData, err := ioutil.ReadAll(response.Body)
-		response.Body.Close()
+	imageData, err := ioutil.ReadAll(imageDownloadResponse.Body)
+	responseStatusCode := imageDownloadResponse.StatusCode
+	imageDownloadResponse.Body.Close()
+	imageDownloadResponse = nil
+	if responseStatusCode == 200 || responseStatusCode == 302 || responseStatusCode == 304 {
 		if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 			logAccess(this, 500, 0)
 			this.Abort("500")
