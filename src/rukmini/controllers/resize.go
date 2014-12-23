@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/astaxie/beego"
+	"github.com/chai2010/gopkg/image/webp"
 	"github.com/gographics/imagick/imagick"
 	"github.com/nfnt/resize"
 	"github.com/satori/uuid"
@@ -26,11 +28,12 @@ type ResizeController struct {
 }
 
 type ResizeParameters struct {
-	what    string
-	width   float64
-	height  float64
-	quality int
-	uri     string
+	what        string
+	width       float64
+	height      float64
+	quality     int
+	uri         string
+	render_webp bool
 }
 
 var imageMagickConcurrencyLock sync.RWMutex
@@ -67,7 +70,14 @@ func (this *ResizeController) ExtractParameters() (*ResizeParameters, error) {
 			quality = qt
 		}
 	}
-	return &ResizeParameters{what: what, width: convertedWidth, height: convertedHeight, quality: quality, uri: imageUri}, nil
+	var render_webp bool = false
+	if len(this.Input().Get("webp")) != 0 {
+		wp, e := strconv.ParseBool(this.Input().Get("webp"))
+		if e == nil {
+			render_webp = wp
+		}
+	}
+	return &ResizeParameters{what: what, width: convertedWidth, height: convertedHeight, quality: quality, uri: imageUri, render_webp: render_webp}, nil
 }
 
 /**
@@ -98,6 +108,8 @@ func (this *ResizeController) Get() {
 	imageDownloadResponse = nil
 	if responseStatusCode == 200 || responseStatusCode == 302 || responseStatusCode == 304 {
 		if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
+			errMessage := fmt.Sprintf("Image Download Error: %s", err)
+			beego.Warn(errMessage)
 			logAccess(this, 500, 0)
 			this.Abort("500")
 			return
@@ -105,6 +117,8 @@ func (this *ResizeController) Get() {
 		// open "test.jpg"
 		originalImageFile, err := os.Open(fileName)
 		if err != nil {
+			errMessage := fmt.Sprintf("Image Download Error: %s", err)
+			beego.Warn(errMessage)
 			logAccess(this, 500, 0)
 			this.Abort("500")
 			return
@@ -159,40 +173,68 @@ func (this *ResizeController) Get() {
 				resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
 				resizeImageFile, err := os.Create(fileName)
 				if err != nil {
+					errMessage := fmt.Sprintf("Image Resize Error: %s", err)
+					beego.Warn(errMessage)
 					logAccess(this, 500, 0)
 					this.Abort("500")
 					os.Remove(fileName)
 					return
 				}
-				if fileExt == ".jpeg" || fileExt == ".jpg" {
-					jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: resizeParameters.quality})
+				if resizeParameters.render_webp == false {
+					if fileExt == ".jpeg" || fileExt == ".jpg" {
+						jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: resizeParameters.quality})
+					}
+					if fileExt == ".png" {
+						png.Encode(resizeImageFile, resizedImage)
+					}
+					if fileExt == ".gif" {
+						gif.Encode(resizeImageFile, resizedImage, &gif.Options{NumColors: 256})
+					}
+				} else {
+					var buf bytes.Buffer
+					if err = webp.Encode(&buf, resizedImage, &webp.Options{Lossless: false, Quality: float32(resizeParameters.quality)}); err != nil {
+						logAccess(this, 500, 0)
+						this.Abort("500")
+						os.Remove(fileName)
+						return
+					}
+					if err = ioutil.WriteFile(fileName+".webp", buf.Bytes(), 0666); err != nil {
+						logAccess(this, 500, 0)
+						this.Abort("500")
+						os.Remove(fileName)
+						return
+					}
 				}
-				if fileExt == ".png" {
-					png.Encode(resizeImageFile, resizedImage)
-				}
-				if fileExt == ".gif" {
-					gif.Encode(resizeImageFile, resizedImage, &gif.Options{NumColors: 256})
-				}
-				stat, err := resizeImageFile.Stat()
-				if err != nil {
-					logAccess(this, 500, 0)
-					this.Abort("500")
+				if resizeParameters.render_webp == true {
+					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName+".webp")
+					os.Remove(fileName)
+					return
+				} else {
+					stat, err := resizeImageFile.Stat()
+					if err != nil {
+						errMessage := fmt.Sprintf("Image Resize/Stat Error: %s", err)
+						beego.Warn(errMessage)
+						logAccess(this, 500, 0)
+						this.Abort("500")
+						resizeImageFile.Close()
+						os.Remove(fileName)
+						return
+					}
 					resizeImageFile.Close()
+					fSize := stat.Size()
+					if fSize < 100 {
+						errMessage := fmt.Sprintf("Image Size Error: %s", err)
+						beego.Warn(errMessage)
+						logAccess(this, 500, 0)
+						this.Abort("500")
+						os.Remove(fileName)
+						return
+					}
+					logAccess(this, 200, fSize)
+					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 					os.Remove(fileName)
 					return
 				}
-				resizeImageFile.Close()
-				fSize := stat.Size()
-				if fSize < 100 {
-					logAccess(this, 500, 0)
-					this.Abort("500")
-					os.Remove(fileName)
-					return
-				}
-				logAccess(this, 200, fSize)
-				http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-				os.Remove(fileName)
-				return
 			}
 		}
 	} else {
