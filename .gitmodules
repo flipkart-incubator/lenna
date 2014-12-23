@@ -13,3 +13,6 @@
 [submodule "src/github.com/nl5887/golang-image"]
 	path = src/github.com/nl5887/golang-image
 	url = https://github.com/nl5887/golang-image
+[submodule "src/github.com/chai2010/gopkg/image/webp"]
+	url = https://github.com/chai2010/gopkg/image/webp
+	
