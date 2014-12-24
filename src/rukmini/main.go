@@ -17,6 +17,6 @@ func rukmini_bad_request_handler(rw http.ResponseWriter, r *http.Request) {
 func main() {
 	beego.Errorhandler("500", rukmini_error_handler)
 	beego.Errorhandler("400", rukmini_bad_request_handler)
-	beego.SetLogger("file", `{"filename":"/var/log/rukmini/rukmini.log", "daily" : true, "maxdays": 3, "rotate" : true, "maxsize" : 1000000000}`)
+	beego.SetLogger("file", `{"filename":"/var/log/rukmini/rukmini.log", "daily" : true, "maxdays": 3, "rotate" : true}`)
 	beego.Run()
 }
