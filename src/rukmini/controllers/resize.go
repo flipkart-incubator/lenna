@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/astaxie/beego"
-	"github.com/chai2010/gopkg/image/webp"
+	"github.com/chai2010/webp"
 	"github.com/gographics/imagick/imagick"
 	"github.com/nfnt/resize"
 	"github.com/satori/uuid"
