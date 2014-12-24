@@ -65,7 +65,7 @@ if [ "$1" == "configure" ] ; then
 
     cp -r /etc/haproxy/haproxy-rukmini.cfg /etc/haproxy/haproxy.cfg || true
     cp -r /etc/default/haproxy-rukmini /etc/default/haproxy || true
-
+    cat /dev/null >/var/log/${PACKAGE}/${PACKAGE}.log
     sleep 5
     if [ -x "/etc/init.d/${PACKAGE}" ]; then
 	    sudo /etc/init.d/${PACKAGE} start || true
