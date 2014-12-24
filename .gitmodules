@@ -15,4 +15,5 @@
 	url = https://github.com/nl5887/golang-image
 [submodule "src/github.com/chai2010/webp"]
 	url = https://github.com/chai2010/webp
+	path = src/github.com/chai2010/webp
 	
