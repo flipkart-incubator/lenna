@@ -80,6 +80,16 @@ func (this *ResizeController) ExtractParameters() (*ResizeParameters, error) {
 	return &ResizeParameters{what: what, width: convertedWidth, height: convertedHeight, quality: quality, uri: imageUri, render_webp: render_webp}, nil
 }
 
+//Add all the caching headers here
+func AddCacheHeaders(this *ResizeController) {
+	maxAge, err := beego.AppConfig.Int64("resource.maxage")
+	if err != nil {
+		this.Ctx.ResponseWriter.Header().Add("Cache-Control", "max-age="+strconv.FormatInt(maxAge, 10))
+	} else {
+		this.Ctx.ResponseWriter.Header().Add("Cache-Control", "max-age=63072000")
+	}
+}
+
 /**
  * Resize the image and maintain aspect ratio
  */
@@ -147,6 +157,7 @@ func (this *ResizeController) Get() {
 				var original_height = imgc.Height
 				if float64(original_height) <= resizeParameters.height && float64(original_width) <= resizeParameters.width {
 					logAccess(this, 200, 0)
+					AddCacheHeaders(this)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 					os.Remove(fileName)
 					return
@@ -206,6 +217,7 @@ func (this *ResizeController) Get() {
 					}
 				}
 				if resizeParameters.render_webp == true {
+					AddCacheHeaders(this)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName+".webp")
 					os.Remove(fileName)
 					return
@@ -231,6 +243,7 @@ func (this *ResizeController) Get() {
 						return
 					}
 					logAccess(this, 200, fSize)
+					AddCacheHeaders(this)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 					os.Remove(fileName)
 					return
@@ -325,6 +338,7 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 		os.Remove(fileName)
 		return
 	}
+	AddCacheHeaders(this)
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 	logAccess(this, 200, fSize)
 	os.Remove(fileName)
