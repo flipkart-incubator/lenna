@@ -4,16 +4,18 @@
 * Health check: `GET /status`
 * OOR: `POST /oor`
 * BIR: `POST /bit`
-* Resize: `GET /{source prefix}/{width}/{height}/{relative path from source}?[q={quality}]`
+* Resize: `GET /{source prefix}/{width}/{height}/{relative path from source}?[q={quality}]&[webp=true]`
 
 ## Example Resize
 
-`/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg`
+* `/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg`
+* `/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg?q=80`
+* `/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg?q=80&webp=true`
 
 ## Production Instance
 * Internal VIP: `rukmini.flixcart.vip.nm.flipkart.com`
 * CDN Origin CName: `rukmini.flixcart.com`
-* CDN Edge CNames: `rukmini1.flixcart.com, rukmini2.flixcart.com, rukmini3.flixcart.com`
+* CDN Edge CNames: `rukmini[1-16].flixcart.com
 
 ## Runtime Dependencies
 * [go 1.3](http://golang.org/)
