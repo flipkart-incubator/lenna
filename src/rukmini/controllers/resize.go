@@ -192,7 +192,7 @@ func (this *ResizeController) Get() {
 					beego.Warn(errMessage)
 					logAccess(this, 500, 0)
 					this.Abort("500")
-					os.Remove(fileName)
+					os.Remove(fileNameWithExtension)
 					return
 				}
 				if resizeParameters.render_webp == false {
@@ -210,13 +210,13 @@ func (this *ResizeController) Get() {
 					if err = webp.Encode(&buf, resizedImage, &webp.Options{Lossless: false, Quality: float32(resizeParameters.quality)}); err != nil {
 						logAccess(this, 500, 0)
 						this.Abort("500")
-						os.Remove(fileName)
+						os.Remove(fileNameWithExtension)
 						return
 					}
 					if err = ioutil.WriteFile(fileNameWithExtension, buf.Bytes(), 0666); err != nil {
 						logAccess(this, 500, 0)
 						this.Abort("500")
-						os.Remove(fileName)
+						os.Remove(fileNameWithExtension)
 						return
 					}
 				}
@@ -227,13 +227,13 @@ func (this *ResizeController) Get() {
 					logAccess(this, 500, 0)
 					this.Abort("500")
 					resizeImageFile.Close()
-					os.Remove(fileName)
+					os.Remove(fileNameWithExtension)
 					return
 				}
 				if resizeParameters.render_webp == true {
 					AddCacheHeaders(this)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileNameWithExtension)
-					os.Remove(fileName)
+					os.Remove(fileNameWithExtension)
 					logAccess(this, 200, stat.Size())
 					return
 				} else {
