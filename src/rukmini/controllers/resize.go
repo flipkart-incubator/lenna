@@ -182,7 +182,6 @@ func (this *ResizeController) Get() {
 					height = 1
 				}
 				resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
-				resizeImageFile, err := os.Create(fileName)
 				if err != nil {
 					errMessage := fmt.Sprintf("Image Resize Error: %s", err)
 					beego.Warn(errMessage)
@@ -191,6 +190,11 @@ func (this *ResizeController) Get() {
 					os.Remove(fileName)
 					return
 				}
+				var fileNameWithExtension string = fileName
+				if resizeParameters.render_webp == true {
+					fileNameWithExtension = fileNameWithExtension + ".webp"
+				}
+				resizeImageFile, err := os.Create(fileNameWithExtension)
 				if resizeParameters.render_webp == false {
 					if fileExt == ".jpeg" || fileExt == ".jpg" {
 						jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: resizeParameters.quality})
@@ -209,7 +213,7 @@ func (this *ResizeController) Get() {
 						os.Remove(fileName)
 						return
 					}
-					if err = ioutil.WriteFile(fileName+".webp", buf.Bytes(), 0666); err != nil {
+					if err = ioutil.WriteFile(fileNameWithExtension, buf.Bytes(), 0666); err != nil {
 						logAccess(this, 500, 0)
 						this.Abort("500")
 						os.Remove(fileName)
@@ -218,8 +222,10 @@ func (this *ResizeController) Get() {
 				}
 				if resizeParameters.render_webp == true {
 					AddCacheHeaders(this)
-					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName+".webp")
+					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileNameWithExtension)
 					os.Remove(fileName)
+					stat, _ := resizeImageFile.Stat()
+					logAccess(this, 200, stat.Size())
 					return
 				} else {
 					stat, err := resizeImageFile.Stat()
