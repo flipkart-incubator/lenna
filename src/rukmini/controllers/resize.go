@@ -195,6 +195,15 @@ func (this *ResizeController) Get() {
 					fileNameWithExtension = fileNameWithExtension + ".webp"
 				}
 				resizeImageFile, err := os.Create(fileNameWithExtension)
+				if err != nil {
+					errMessage := fmt.Sprintf("Image Resize/Stat Error: %s", err)
+					beego.Warn(errMessage)
+					logAccess(this, 500, 0)
+					this.Abort("500")
+					resizeImageFile.Close()
+					os.Remove(fileName)
+					return
+				}
 				if resizeParameters.render_webp == false {
 					if fileExt == ".jpeg" || fileExt == ".jpg" {
 						jpeg.Encode(resizeImageFile, resizedImage, &jpeg.Options{Quality: resizeParameters.quality})
@@ -229,15 +238,6 @@ func (this *ResizeController) Get() {
 					return
 				} else {
 					stat, err := resizeImageFile.Stat()
-					if err != nil {
-						errMessage := fmt.Sprintf("Image Resize/Stat Error: %s", err)
-						beego.Warn(errMessage)
-						logAccess(this, 500, 0)
-						this.Abort("500")
-						resizeImageFile.Close()
-						os.Remove(fileName)
-						return
-					}
 					resizeImageFile.Close()
 					fSize := stat.Size()
 					if fSize < 100 {
