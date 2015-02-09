@@ -60,7 +60,7 @@ func (this *ResizeController) ExtractParameters() (*ResizeParameters, error) {
 	if err != nil {
 		return &ResizeParameters{}, err
 	}
-	imageUri := this.Ctx.Input.Param(":splat")
+	imageUri := this.Ctx.Input.Param(":path")
 	var quality int = 90
 	if len(this.Input().Get("q")) != 0 {
 		qt, e := strconv.Atoi(this.Input().Get("q"))
@@ -105,7 +105,6 @@ func (this *ResizeController) Get() {
 	fileName := fmt.Sprintf("/tmp/%s%s", u4, fileExt)
 	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(resizeParameters.what+".source"), resizeParameters.uri)
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
-	req.Host = "rukmini.flixcart.com"
 	imageDownloadResponse, err := client.Do(req)
 	if err != nil {
 		logAccess(this, 500, 0)
