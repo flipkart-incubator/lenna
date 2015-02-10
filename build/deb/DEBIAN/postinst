@@ -63,7 +63,6 @@ if [ "$1" == "configure" ] ; then
     sudo chkconfig --level 2345  ${PACKAGE} on
     sudo /etc/init.d/${PACKAGE} terminate || true
 
-    cp -r /etc/haproxy/haproxy-rukmini.cfg /etc/haproxy/haproxy.cfg || true
     cp -r /etc/default/haproxy-rukmini /etc/default/haproxy || true
     cat /dev/null >/var/log/${PACKAGE}/${PACKAGE}.log
     sleep 5
