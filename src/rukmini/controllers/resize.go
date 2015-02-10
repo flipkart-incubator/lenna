@@ -105,7 +105,10 @@ func (this *ResizeController) Get() {
 	fileName := fmt.Sprintf("/tmp/%s%s", u4, fileExt)
 	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(resizeParameters.what+".source"), resizeParameters.uri)
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
-	req.Host = "rukmini.flixcart.com"
+	hostOverride := beego.AppConfig.String("hostOverride")
+	if hostOverride != "" {
+		req.Host = hostOverride
+	}
 	imageDownloadResponse, err := client.Do(req)
 	if err != nil {
 		logAccess(this, 500, 0)
