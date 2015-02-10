@@ -19,3 +19,5 @@ out/
 *.swp
 *.pid
 *.tar.gz
+src/rukmini/main
+src/rukmini/rukmini

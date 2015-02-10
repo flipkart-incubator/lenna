@@ -54,10 +54,6 @@ cp -r "${BUILD_DIR}/deb/usr" "${DEB_DIR}/"
 # Copy app source files which will be compiled in postinst
 cp -r "${LOCAL_DIR}/src" "${DEB_DIR}/var/lib/${PACKAGE}/"
 
-if [ "${ENV}" == "stagech" ]; then
-cp -rf "${DEB_DIR}/var/lib/${PACKAGE}/src/${PACKAGE}/conf/app-stage.conf" "${DEB_DIR}/var/lib/${PACKAGE}/src/${PACKAGE}/conf/app.conf"
-fi
-
 #Set executable permission for DEBIAN directory
 chmod -R 755 "${DEB_DIR}/DEBIAN"
 

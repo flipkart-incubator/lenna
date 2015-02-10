@@ -27,6 +27,7 @@ RUKMINI_BASE_DIR=/var/lib/${PACKAGE}
 RUKMINI_EXE=${RUKMINI_BASE_DIR}/src/${PACKAGE}/${PACKAGE}
 RUKMINI_PID_PATH=/var/run/${PACKAGE}
 RUKMINI_PID_FILE=${RUKMINI_PID_PATH}/${PACKAGE}.pid
+RUKMINI_CODE=${RUKMINI_BASE_DIR}/src/${PACKAGE}
 
 if [ ! -e ${RUKMINI_PID_PATH} ]; then
     mkdir -m 755 -p ${RUKMINI_PID_PATH}
@@ -51,8 +52,20 @@ echo "************************************************************************"
 
 ACTION="$1"
 
+fetchConfig()
+{
+    curl -s "pf-config-publish.nm.flipkart.com/cfgsvc/v1/configuration/mobile-services/-/`hostname -f`/0/$1?raw=true"
+}
+
+downloadRukminiConfig()
+{
+    fetchConfig "rukmini-service.rukmini-conf" > "${RUKMINI_CODE}/conf/app.conf"
+    fetchConfig "rukmini-service.haproxy-cfg" > "/etc/haproxy/haproxy.cfg"
+}
+
 start()
 {
+    downloadRukminiConfig
     touch /var/run/${PACKAGE}/${PACKAGE}.pid
     chmod -R 777 /var/run/${PACKAGE}/${PACKAGE}.pid
     start-stop-daemon --start --background --oknodo \
