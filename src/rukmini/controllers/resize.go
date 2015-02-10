@@ -40,6 +40,8 @@ var imageMagickConcurrencyLock sync.RWMutex
 
 var timeout = time.Duration(3 * time.Second)
 
+var hostOverride = beego.AppConfig.String("hostOverride")
+
 func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, timeout)
 }
@@ -105,7 +107,6 @@ func (this *ResizeController) Get() {
 	fileName := fmt.Sprintf("/tmp/%s%s", u4, fileExt)
 	downloadUrl := fmt.Sprintf("%s%s", beego.AppConfig.String(resizeParameters.what+".source"), resizeParameters.uri)
 	req, _ := http.NewRequest("GET", downloadUrl, nil)
-	hostOverride := beego.AppConfig.String("hostOverride")
 	if hostOverride != "" {
 		req.Host = hostOverride
 	}
