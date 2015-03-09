@@ -38,7 +38,8 @@ type ResizeParameters struct {
 
 var imageMagickConcurrencyLock sync.RWMutex
 
-var timeout = time.Duration(3 * time.Second)
+var fk_cdn_timeout, _ = beego.AppConfig.Int64("fkcdn_timeout")
+var timeout = time.Duration(time.Duration(fk_cdn_timeout) * time.Millisecond)
 
 var hostOverride = beego.AppConfig.String("hostOverride")
 
