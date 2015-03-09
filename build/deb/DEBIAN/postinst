@@ -70,5 +70,9 @@ if [ "$1" == "configure" ] ; then
 	    sudo /etc/init.d/${PACKAGE} start || true
 	    sleep 5
     fi
+
+    echo "Renaming logrotate and rsyslog files"
+    cp /etc/logrotate.d/rukmini-haproxy /etc/logrotate.d/haproxy
+    cp /etc/rsyslog.d/rukmini-49-haproxy.conf /etc/rsyslog.d/49-haproxy.conf
 fi
 exit 0
