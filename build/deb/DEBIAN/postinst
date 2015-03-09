@@ -25,11 +25,11 @@ if [ "$1" == "configure" ] ; then
     chown -R ${PF_UID}:${PF_GID} /var/lib/${PACKAGE}
     if [ -d "/var/log/${PACKAGE}" ]; then
  	    touch /var/log/${PACKAGE}/${PACKAGE}.log
- 	    chmod -R 777 /var/log/${PACKAGE}/${PACKAGE}.log
+ 	    chmod -R 777 /var/log/${PACKAGE}/
  	else
  	    mkdir -p /var/log/${PACKAGE}
  	    touch /var/log/${PACKAGE}/${PACKAGE}.log
- 	    chmod -R 777 /var/log/${PACKAGE}/${PACKAGE}.log
+ 	    chmod -R 777 /var/log/${PACKAGE}/
     fi
     chmod 777 /etc/init.d/${PACKAGE}
     chmod -R 777 /var/lib/${PACKAGE}/src
@@ -70,5 +70,14 @@ if [ "$1" == "configure" ] ; then
 	    sudo /etc/init.d/${PACKAGE} start || true
 	    sleep 5
     fi
+
+    echo "Renaming logrotate and rsyslog files"
+    cp /etc/logrotate.d/rukmini-haproxy /etc/logrotate.d/haproxy
+    cp /etc/rsyslog.d/rukmini-49-haproxy.conf /etc/rsyslog.d/49-haproxy.conf
+    chmod 777 /etc/logrotate.d/haproxy
+    chmod 777 /etc/rsyslog.d/49-haproxy.conf
+    chmod 777 /etc/init.d/rukmini
+
+
 fi
 exit 0
