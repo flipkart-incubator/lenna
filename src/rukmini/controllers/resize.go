@@ -112,6 +112,7 @@ func (this *ResizeController) Get() {
 	}
 	imageDownloadResponse, err := client.Do(req)
 	if err != nil {
+		beego.Error("ImageDownloadError", err)
 		logAccess(this, 500, 0)
 		this.Abort("500")
 		return
