@@ -38,7 +38,8 @@ type ResizeParameters struct {
 
 var imageMagickConcurrencyLock sync.RWMutex
 
-var timeout = time.Duration(3 * time.Second)
+var fk_cdn_timeout, _ = beego.AppConfig.Int64("fkcdn_timeout")
+var timeout = time.Duration(time.Duration(fk_cdn_timeout) * time.Millisecond)
 
 var hostOverride = beego.AppConfig.String("hostOverride")
 
@@ -110,8 +111,12 @@ func (this *ResizeController) Get() {
 	if hostOverride != "" {
 		req.Host = hostOverride
 	}
+	downloadStartTime := time.Now().UnixNano()
 	imageDownloadResponse, err := client.Do(req)
+	downloadEndTime := time.Now().UnixNano()
+
 	if err != nil {
+		beego.Error(fmt.Sprintf("ImageDownloadError - Errot thrown after %s %s. Exception %s", downloadStartTime, downloadEndTime, err))
 		logAccess(this, 500, 0)
 		this.Abort("500")
 		return
