@@ -117,7 +117,6 @@ func (this *ResizeController) Get() {
 	imageDownloadResponse, err := httpClient.Execute(req)
 	downloadEndTime := time.Now().UnixNano()
 	if err != nil {
-		beego.Error(fmt.Sprintf("ImageDownloadError - Errot thrown after %s %s. Exception %s", downloadStartTime, downloadEndTime, err))
 		logAccess(this, 500, 0)
 		this.Abort("500")
 		return
