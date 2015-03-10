@@ -54,7 +54,7 @@ ACTION="$1"
 
 fetchConfig()
 {
-    curl -s "pf-config-publish.nm.flipkart.com/cfgsvc/v1/configuration/mobile-services/-/`hostname -f`/0/$1?raw=true"
+    curl -s "pf-config-publish.nm.flipkart.com/cfgsvc/v1/configuration/mobile-services/-/mobile-rukmini-app/0/$1?raw=true"
 }
 
 downloadRukminiConfig()
