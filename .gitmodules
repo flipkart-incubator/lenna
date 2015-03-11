@@ -16,4 +16,6 @@
 [submodule "src/github.com/chai2010/webp"]
 	url = https://github.com/chai2010/webp
 	path = src/github.com/chai2010/webp
-	
+[submodule "src/github.com/afex/hystrix-go"]
+	url = https://github.com/afex/hystrix-go
+	path = src/github.com/afex/hystrix-go
