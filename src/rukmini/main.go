@@ -6,6 +6,7 @@ import (
 	_ "rukmini/routers"
 	"github.com/afex/hystrix-go/hystrix"
 	"net"
+	"rukmini/conf"
 )
 
 func rukmini_error_handler(rw http.ResponseWriter, r *http.Request) {
@@ -26,9 +27,8 @@ func main() {
 }
 
 func initHystrixCommand() {
-	fk_cdn_timeout, _ := beego.AppConfig.Int("fkcdn_timeout");
-	hystrix.ConfigureCommand("fk-cdn", hystrix.CommandConfig{
-		Timeout:               fk_cdn_timeout,
+	hystrix.ConfigureCommand(conf.FK_CDN_HYSTRIX_COMMAND, hystrix.CommandConfig{
+		Timeout:               int(conf.GetFkCdnTimeout()),
 		MaxConcurrentRequests: 100,
 		ErrorPercentThreshold: 90,
 	})

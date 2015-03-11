@@ -26,15 +26,21 @@ func (this HttpCommand) Execute(input *http.Request) (response *http.Response, e
 			response, err = this.client.Do(input)
 			output <- response
 			return err
-		}, nil)
+		}, func(err error) error {
+			if err == hystrix.ErrTimeout {
+				output <- nil
+			}
+			return hystrix.ErrTimeout
+		})
 
 	response = <- output
 	endDownload := time.Now().UnixNano()
-	if len(errorChannel) > 0 {
-		beego.Info("Error Download time ", endDownload - startDownload)
-		return nil, <- errorChannel
+	if response == nil {
+		err = <- errorChannel
+		beego.Info("HttpCommand=Error StartTime=", startDownload, " EndTime=", endDownload, " URL=", input.URL)
+		return nil, err
 	} else {
-		beego.Info("Download time ", endDownload - startDownload)
+		beego.Info("HttpCommand=Success StartTime=", startDownload, " EndTime=", endDownload, " URL=", input.URL)
 		return response, nil
 	}
 
