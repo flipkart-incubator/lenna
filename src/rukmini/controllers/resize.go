@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 	"rukmini/command"
+	"rukmini/conf"
 )
 
 type ResizeController struct {
@@ -39,8 +40,9 @@ type ResizeParameters struct {
 
 var imageMagickConcurrencyLock sync.RWMutex
 
-var fk_cdn_timeout, _ = beego.AppConfig.Int64("fkcdn_timeout")
-var timeout = time.Duration(time.Duration(fk_cdn_timeout) * time.Millisecond)
+var httpClient = command.Init(client, conf.FK_CDN_HYSTRIX_COMMAND)
+
+var timeout = time.Duration(time.Duration(conf.GetFkCdnTimeout()) * time.Millisecond)
 
 var hostOverride = beego.AppConfig.String("hostOverride")
 
@@ -112,10 +114,10 @@ func (this *ResizeController) Get() {
 	if hostOverride != "" {
 		req.Host = hostOverride
 	}
-	downloadStartTime := time.Now().UnixNano()
-	httpClient := command.Init(client, "fk_cdn")
+
+
 	imageDownloadResponse, err := httpClient.Execute(req)
-	downloadEndTime := time.Now().UnixNano()
+
 	if err != nil {
 		logAccess(this, 500, 0)
 		this.Abort("500")
