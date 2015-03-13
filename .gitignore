@@ -21,3 +21,4 @@ out/
 *.tar.gz
 src/rukmini/main
 src/rukmini/rukmini
+deb/
