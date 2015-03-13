@@ -19,6 +19,7 @@ func rukmini_bad_request_handler(rw http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	//GOMAXPROCS is being set by beego and nfnt.resize. But just to be sure this variable is set
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	initErrorHandler()
 	initLogger()
