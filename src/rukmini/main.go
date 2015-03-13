@@ -7,6 +7,7 @@ import (
 	"github.com/afex/hystrix-go/hystrix"
 	"net"
 	"rukmini/conf"
+	"runtime"
 )
 
 func rukmini_error_handler(rw http.ResponseWriter, r *http.Request) {
@@ -18,7 +19,7 @@ func rukmini_bad_request_handler(rw http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	initErrorHandler()
 	initLogger()
 	initHystrixDashboard()
