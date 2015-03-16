@@ -37,7 +37,7 @@ func (this HttpCommand) Execute(input *http.Request) (response *http.Response, e
 	endDownload := time.Now().UnixNano()
 	if response == nil {
 		err = <- errorChannel
-		beego.Info("HttpCommand=Error StartTime=", startDownload, " EndTime=", endDownload, " URL=", input.URL)
+		beego.Info("HttpCommand=Error StartTime=", startDownload, " EndTime=", endDownload, " URL=", input.URL, " Error=", err)
 		return nil, err
 	} else {
 		beego.Info("HttpCommand=Success StartTime=", startDownload, " EndTime=", endDownload, " URL=", input.URL)
