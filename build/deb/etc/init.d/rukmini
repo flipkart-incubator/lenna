@@ -61,11 +61,13 @@ downloadRukminiConfig()
 {
     fetchConfig "rukmini-service.rukmini-conf" > "${RUKMINI_CODE}/conf/app.conf"
     fetchConfig "rukmini-service.haproxy-cfg" > "/etc/haproxy/haproxy.cfg"
+    fetchConfig "rukmini-service.nginx-cfg" > "/etc/nginx/fk_nginx.conf"
 }
 
 start()
 {
     downloadRukminiConfig
+    sudo /etc/init.d/nginx restart
     touch /var/run/${PACKAGE}/${PACKAGE}.pid
     chmod -R 777 /var/run/${PACKAGE}/${PACKAGE}.pid
     start-stop-daemon --start --background --oknodo \
