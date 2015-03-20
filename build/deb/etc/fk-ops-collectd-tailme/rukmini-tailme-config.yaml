@@ -1,4 +1,5 @@
 file: /var/log/rukmini/access.log
+application: rukmini
 statusCodePosition: 7
 sizePosition: 8
 responseTimePosition: 12

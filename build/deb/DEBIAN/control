@@ -2,7 +2,7 @@ Package: _PACKAGE_
 Version: 1._VERSION_
 Section: flipkart/mobile
 Priority: standard
-Depends: chkconfig, libmagickwand5, libmagickwand-dev, haproxy, fk-ops-nginx-bin, fk-ops-collectd-tailme
+Depends: chkconfig, libmagickwand5, libmagickwand-dev, haproxy, fk-ops-nginx-bin, oracle-j2sdk1.8, fk-ops-collectd-tailme
 Architecture: all
 Maintainer: Mobile Platform <mobile-api-team@flipkart.com>
 Description: Rukmini - Image Delivery Service for mobile & devices
