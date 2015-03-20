@@ -1,7 +1,7 @@
 file: /var/log/rukmini/access.log
-statusCodePosition: 7
-sizePosition: 8
-responseTimePosition: 12
+statusCodePosition: 6
+sizePosition: 7
+responseTimePosition: 11
 multiplier: 1
 period: 60
 
