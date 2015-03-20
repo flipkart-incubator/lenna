@@ -60,8 +60,8 @@ fetchConfig()
 downloadRukminiConfig()
 {
     fetchConfig "rukmini-service.rukmini-conf" > "${RUKMINI_CODE}/conf/app.conf"
-    fetchConfig "rukmini-service.haproxy-cfg" > "/etc/haproxy/haproxy.conf"
-    fetchConfig "rukmini-service.nginx-cfg" > "/etc/nginx/fk_nginx.conf"
+    fetchConfig "rukmini-service.haproxy-cfg" > "/etc/haproxy/haproxy.cfg"
+    fetchConfig "rukmini-service.nginx-conf" > "/etc/nginx/fk_nginx.conf"
 }
 
 start()
