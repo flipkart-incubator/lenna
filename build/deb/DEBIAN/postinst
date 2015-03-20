@@ -74,7 +74,7 @@ if [ "$1" == "configure" ] ; then
     echo "Renaming logrotate and rsyslog files"
     cp /etc/logrotate.d/rukmini-haproxy /etc/logrotate.d/haproxy
     cp /etc/rsyslog.d/rukmini-49-haproxy.conf /etc/rsyslog.d/49-haproxy.conf
-    if [ ! -f /etc/init.d/bash ]
+    if [ ! -f "/etc/init.d/bash" ];
     then
         ln -s /bin/bash /etc/init.d/bash
     fi
