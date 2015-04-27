@@ -102,7 +102,6 @@ func AddCacheHeaders(this *ResizeController) {
 func (this *ResizeController) Get() {
 	resizeParameters, err := this.ExtractParameters()
 	if err != nil {
-		logAccess(this, 400, 0)
 		this.Abort("400")
 		return
 	}
@@ -119,7 +118,6 @@ func (this *ResizeController) Get() {
 	imageDownloadResponse, err := httpClient.Execute(req)
 
 	if err != nil {
-		logAccess(this, 500, 0)
 		this.Abort("500")
 		return
 	}
@@ -131,7 +129,6 @@ func (this *ResizeController) Get() {
 		if err = ioutil.WriteFile(fileName, imageData, os.ModePerm); err != nil {
 			errMessage := fmt.Sprintf("Image Download Error: %s", err)
 			beego.Warn(errMessage)
-			logAccess(this, 500, 0)
 			this.Abort("500")
 			return
 		}
@@ -140,7 +137,6 @@ func (this *ResizeController) Get() {
 		if err != nil {
 			errMessage := fmt.Sprintf("Image Download Error: %s", err)
 			beego.Warn(errMessage)
-			logAccess(this, 500, 0)
 			this.Abort("500")
 			return
 		}
@@ -150,7 +146,7 @@ func (this *ResizeController) Get() {
 			errMessage := fmt.Sprintf("Image Decode Error. Fallback to ImageMagick: %s", err)
 			beego.Warn(errMessage)
 			originalImageFile.Close()
-			resizeUsingImageMagick(this, fileName, resizeParameters.width, resizeParameters.height, resizeParameters.quality, downloadUrl)
+			resizeUsingImageMagick(this, fileName, resizeParameters.width, resizeParameters.height, resizeParameters.quality)
 		} else {
 			originalImageFile.Close()
 			originalImageFile1, err := os.Open(fileName)
@@ -161,13 +157,12 @@ func (this *ResizeController) Get() {
 				//			this.Ctx.Abort(500, errMessage)
 				originalImageFile1.Close()
 				//			os.Remove(fileName)
-				resizeUsingImageMagick(this, fileName, resizeParameters.width, resizeParameters.height, resizeParameters.quality, downloadUrl)
+				resizeUsingImageMagick(this, fileName, resizeParameters.width, resizeParameters.height, resizeParameters.quality)
 			} else {
 				originalImageFile1.Close()
 				var original_width = imgc.Width
 				var original_height = imgc.Height
 				if float64(original_height) <= resizeParameters.height && float64(original_width) <= resizeParameters.width {
-					logAccess(this, 200, 0)
 					AddCacheHeaders(this)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 					os.Remove(fileName)
@@ -201,7 +196,6 @@ func (this *ResizeController) Get() {
 				if err != nil {
 					errMessage := fmt.Sprintf("Image Resize Error: %s", err)
 					beego.Warn(errMessage)
-					logAccess(this, 500, 0)
 					this.Abort("500")
 					os.Remove(fileNameWithExtension)
 					return
@@ -219,13 +213,11 @@ func (this *ResizeController) Get() {
 				} else {
 					var buf bytes.Buffer
 					if err = webp.Encode(&buf, resizedImage, &webp.Options{Lossless: false, Quality: float32(resizeParameters.quality)}); err != nil {
-						logAccess(this, 500, 0)
 						this.Abort("500")
 						os.Remove(fileNameWithExtension)
 						return
 					}
 					if err = ioutil.WriteFile(fileNameWithExtension, buf.Bytes(), 0666); err != nil {
-						logAccess(this, 500, 0)
 						this.Abort("500")
 						os.Remove(fileNameWithExtension)
 						return
@@ -235,7 +227,6 @@ func (this *ResizeController) Get() {
 				if err != nil {
 					errMessage := fmt.Sprintf("Image Resize/Stat Error: %s", err)
 					beego.Warn(errMessage)
-					logAccess(this, 500, 0)
 					this.Abort("500")
 					resizeImageFile.Close()
 					os.Remove(fileNameWithExtension)
@@ -245,7 +236,6 @@ func (this *ResizeController) Get() {
 					AddCacheHeaders(this)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileNameWithExtension)
 					os.Remove(fileNameWithExtension)
-					logAccess(this, 200, stat.Size())
 					return
 				} else {
 					resizeImageFile.Close()
@@ -253,12 +243,10 @@ func (this *ResizeController) Get() {
 					if fSize < 100 {
 						errMessage := fmt.Sprintf("Image Size Error: %s", err)
 						beego.Warn(errMessage)
-						logAccess(this, 500, 0)
 						this.Abort("500")
 						os.Remove(fileName)
 						return
 					}
-					logAccess(this, 200, fSize)
 					AddCacheHeaders(this)
 					http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
 					os.Remove(fileName)
@@ -268,13 +256,12 @@ func (this *ResizeController) Get() {
 		}
 	} else {
 		//		beego.Error("Error downloading file: " +downloadUrl +" Status: " +strconv.Itoa(response.StatusCode) +"[" +response.Status +"]")
-		logAccess(this, 500, 0)
 		this.Abort("500")
 		return
 	}
 }
 
-func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int, downloadUrl string) {
+func resizeUsingImageMagick(this *ResizeController, fileName string, width float64, height float64, quality int) {
 	//Serialize imagemagick calls
 	imageMagickConcurrencyLock.Lock()
 	defer imageMagickConcurrencyLock.Unlock()
@@ -285,7 +272,6 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	defer mw.Destroy()
 	err := mw.ReadImage(fileName)
 	if err != nil {
-		logAccess(this, 500, 0)
 		this.Abort("500")
 		os.Remove(fileName)
 		return
@@ -316,14 +302,12 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	// The blur factor is a float, where > 1 is blurry, < 1 is sharp
 	err = mw.ResizeImage(uint(width), uint(height), imagick.FILTER_LANCZOS, 1)
 	if err != nil {
-		logAccess(this, 500, 0)
 		this.Abort("500")
 		os.Remove(fileName)
 		return
 	}
 	err = mw.SetImageCompressionQuality(uint(quality))
 	if err != nil {
-		logAccess(this, 500, 0)
 		this.Abort("500")
 		os.Remove(fileName)
 		return
@@ -333,14 +317,12 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	mw.WriteImage(fileName)
 	resizeImageFile, err := os.Open(fileName)
 	if err != nil {
-		logAccess(this, 500, 0)
 		this.Abort("500")
 		os.Remove(fileName)
 		return
 	}
 	stat, err := resizeImageFile.Stat()
 	if err != nil {
-		logAccess(this, 500, 0)
 		this.Abort("500")
 		resizeImageFile.Close()
 		os.Remove(fileName)
@@ -349,19 +331,12 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	resizeImageFile.Close()
 	fSize := stat.Size()
 	if fSize < 100 {
-		logAccess(this, 500, fSize)
 		this.Abort("500")
 		os.Remove(fileName)
 		return
 	}
 	AddCacheHeaders(this)
 	http.ServeFile(this.Ctx.ResponseWriter, this.Ctx.Request, fileName)
-	logAccess(this, 200, fSize)
 	os.Remove(fileName)
 	return
-}
-
-func logAccess(this *ResizeController, status int, size int64) {
-	clientIp := this.Ctx.Request.Header.Get("FK-Client-IP")
-	beego.Info(clientIp, this.Ctx.Request.UserAgent(), this.Ctx.Request.Method, this.Ctx.Request.RequestURI, this.Ctx.Request.Proto, status, size)
 }

@@ -8,7 +8,13 @@ import (
 	"net"
 	"rukmini/conf"
 	"runtime"
+	"flag"
+	"os"
+	"runtime/pprof"
 )
+
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var memprofile = flag.String("memprofile", "", "write memory profile to file")
 
 func rukmini_error_handler(rw http.ResponseWriter, r *http.Request) {
 	rw.Write([]byte("Image delivery error"))
@@ -21,11 +27,48 @@ func rukmini_bad_request_handler(rw http.ResponseWriter, r *http.Request) {
 func main() {
 	//GOMAXPROCS is being set by beego and nfnt.resize. But just to be sure this variable is set
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	flag.Parse()
+
 	initErrorHandler()
 	initLogger()
 	initHystrixDashboard()
 	initHystrixCommand()
+	if isRunModeDebug() {
+		setDebugFlags()
+	}
+
 	beego.Run()
+}
+
+func setDebugFlags() {
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			beego.Error(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+		beego.Info("profiling cpu")
+	} else {
+		beego.Info("not profiling cpu")
+	}
+
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			beego.Error(err)
+		}
+		pprof.WriteHeapProfile(f)
+		defer pprof.StopCPUProfile()
+		beego.Info("profiling memory")
+	} else {
+		beego.Info("not profiling memory")
+	}
+
+}
+
+func isRunModeDebug() bool {
+	return *cpuprofile != "" || *memprofile != "";
 }
 
 func initHystrixCommand() {
