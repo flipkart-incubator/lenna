@@ -1,17 +1,10 @@
-# Rukmini - Image Delivery Service
+# Lenna - Image Delivery Service
 
 Responsive images are landing soon and many organizations are looking for ways to resize images.
-Rukmini is used in Flipkart for resizing images on the fly. The high CPU requirement due to resizing requires images to be cached on the CDN.
-Rukmini can resize and alter the quality of the image. Currently support for jpeg, webp, png and gif has been provided.
+Lenna is used in Flipkart for resizing images on the fly. The high CPU requirement due to resizing requires images to be cached on the CDN.
+Lenna can resize and alter the quality of the image. Currently support for jpeg, webp, png and gif has been provided.
 
 The service makes remote calls to the storage system which hosts the original image which needs to be resized. The remote network call is wrapped around hystrix which enables a better insight into the system.
-
-
-## Example Resize
-
-* `/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg`
-* `/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg?q=80`
-* `/image/500/500/tablet/3/u/g/lenovo-yoga-10-b8000-original-imadryghr3d7tr6e.jpeg?q=80&webp=true`
 
 ## Runtime Dependencies
 * [go 1.3](http://golang.org/)
@@ -31,13 +24,13 @@ The service makes remote calls to the storage system which hosts the original im
 * Preferred IDE: IntelliJ 13.1.3+ (using vim/emacs/atom/mate/sublime is fine too)
 
 ### Setup Development and Production Environment
-* Clone the git repo: `git clone --recursive git@github.com:Flipkart/rukmini.git`
+* Clone the git repo: `git clone --recursive git@github.com:Flipkart/Lenna.git`
 * Change to root project directory
 * Set Environment Variables
   `export GOROOT=`
   `export GOPATH=``pwd``
 * Build
-  `cd src/rukmini`
+  `cd src/Lenna`
   `go build`
 * Run
   `go run main.go`
@@ -45,8 +38,8 @@ The service makes remote calls to the storage system which hosts the original im
 ### Setup IntelliJ
 * Install golang plugin - 0.9.15+
 * Setup Run Configuration for `Go Application`
-* Set environment variables `PATH=/usr/local/bin:/usr/bin:$PATH;GOPATH=<product_base_directory>/rukmini;GOROOT=;`
-* Set script to run: `<product_base_directory>/src/rukmini/main.go`
+* Set environment variables `PATH=/usr/local/bin:/usr/bin:$PATH;GOPATH=<product_base_directory>/Lenna;GOROOT=;`
+* Set script to run: `<product_base_directory>/src/Lenna/main.go`
 
 ### Setup hot code replace (bee tool)
 * Set `GOPATH` to go home: `export GOPATH=/usr/local/go`
