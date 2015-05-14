@@ -24,16 +24,20 @@ The service makes remote calls to the storage system which hosts the original im
 * Preferred IDE: IntelliJ 13.1.3+ (using vim/emacs/atom/mate/sublime is fine too)
 
 ### Setup Development and Production Environment
-* Clone the git repo: `git clone --recursive git@github.com:Flipkart/Lenna.git`
+* Clone the git repo: `git clone --recursive git@github.com:flipkart-incubator/lenna.git`
 * Change to root project directory
 * Set Environment Variables
   `export GOROOT=`
   `export GOPATH=``pwd``
 * Build
-  `cd src/Lenna`
+  `cd src/lenna`
   `go build`
 * Run
   `go run main.go`
+
+### Setup Vim
+Best and easiest way to setup an editor for golang is vim.
+Please follow the following step to setup go-specific-feature in your vim https://github.com/fatih/vim-go
 
 ### Setup IntelliJ
 * Install golang plugin - 0.9.15+
@@ -45,3 +49,6 @@ The service makes remote calls to the storage system which hosts the original im
 * Set `GOPATH` to go home: `export GOPATH=/usr/local/go`
 * Install bee tool: `go get github.com/beego/bee`
 * bee tool documentation: `http://beego.me/docs/install/bee.md`
+
+### Known Issues
+* Lenna may not compile on ubuntu as the C bindings of chai2010 and nfnt conflicts with the system libraries. However, Lenna has been successfully tested on Debian and Mac.

@@ -13,6 +13,8 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
+	"lenna/command"
+	"lenna/conf"
 	"net"
 	"net/http"
 	"os"
@@ -21,8 +23,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"rukmini/command"
-	"rukmini/conf"
 )
 
 type ResizeController struct {
@@ -114,7 +114,6 @@ func (this *ResizeController) Get() {
 		req.Host = hostOverride
 	}
 
-
 	imageDownloadResponse, err := httpClient.Execute(req)
 
 	if err != nil {
@@ -175,11 +174,11 @@ func (this *ResizeController) Get() {
 				var width = float64(-1)
 				var height = float64(-1)
 				if width_ratio < height_ratio {
-					width = float64(original_width)*width_ratio
-					height = float64(original_height)*width_ratio
+					width = float64(original_width) * width_ratio
+					height = float64(original_height) * width_ratio
 				} else {
-					width = float64(original_width)*height_ratio
-					height = float64(original_height)*height_ratio
+					width = float64(original_width) * height_ratio
+					height = float64(original_height) * height_ratio
 				}
 				if width < 1 {
 					width = 1
@@ -190,7 +189,7 @@ func (this *ResizeController) Get() {
 				resizedImage := resize.Resize(uint(width), uint(height), originalImg, resize.Lanczos3)
 				var fileNameWithExtension string = fileName
 				if resizeParameters.render_webp == true {
-					fileNameWithExtension = fileNameWithExtension+".webp"
+					fileNameWithExtension = fileNameWithExtension + ".webp"
 				}
 				resizeImageFile, err := os.Create(fileNameWithExtension)
 				if err != nil {
@@ -282,11 +281,11 @@ func resizeUsingImageMagick(this *ResizeController, fileName string, width float
 	width_ratio := width / float64(original_width)
 	height_ratio := height / float64(original_height)
 	if width_ratio < height_ratio {
-		width = float64(original_width)*width_ratio
-		height = float64(original_height)*width_ratio
+		width = float64(original_width) * width_ratio
+		height = float64(original_height) * width_ratio
 	} else {
-		width = float64(original_width)*height_ratio
-		height = float64(original_height)*height_ratio
+		width = float64(original_width) * height_ratio
+		height = float64(original_height) * height_ratio
 	}
 	if width < 1 {
 		width = 1

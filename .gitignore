@@ -4,9 +4,6 @@ out/
 /pkg
 /dist
 /deb
-/src/rukmini/rukmini
-/src/rukmini/scripts/producer
-/src/rukmini/scripts/consumer
 .idea
 .idea_modules
 .DS_Store
@@ -19,6 +16,6 @@ out/
 *.swp
 *.pid
 *.tar.gz
-src/rukmini/main
-src/rukmini/rukmini
+src/lenna/main
+src/lenna/lenna
 /deb/

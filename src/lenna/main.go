@@ -1,15 +1,15 @@
 package main
 
 import (
-	"github.com/astaxie/beego"
-	"net/http"
-	_ "rukmini/routers"
-	"github.com/afex/hystrix-go/hystrix"
-	"net"
-	"rukmini/conf"
-	"runtime"
 	"flag"
+	"github.com/afex/hystrix-go/hystrix"
+	"github.com/astaxie/beego"
+	"lenna/conf"
+	_ "lenna/routers"
+	"net"
+	"net/http"
 	"os"
+	"runtime"
 	"runtime/pprof"
 )
 
@@ -68,7 +68,7 @@ func setDebugFlags() {
 }
 
 func isRunModeDebug() bool {
-	return *cpuprofile != "" || *memprofile != "";
+	return *cpuprofile != "" || *memprofile != ""
 }
 
 func initHystrixCommand() {
@@ -86,7 +86,7 @@ func initHystrixDashboard() {
 }
 
 func initLogger() {
-	beego.SetLogger("file", `{"filename":"/var/log/rukmini/rukmini.log", "daily" : true, "maxdays": 3, "rotate" : true}`)
+	beego.SetLogger("file", `{"filename":"/var/log/flipkart/lenna.log", "daily" : true, "maxdays": 3, "rotate" : true}`)
 }
 
 func initErrorHandler() {
