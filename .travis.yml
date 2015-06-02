@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.4
+
+install:
+  - go get github.com/afex/hystrix-go/hystrix
+  - go get github.com/astaxie/beego
+  - go get github.com/chai2010/webp
+  - go get github.com/gographics/imagick/imagick
+  - go get github.com/nfnt/resize
+  - go get github.com/satori/uuid
